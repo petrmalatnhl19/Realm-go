@@ -1,44 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#101c39">
-<title>REALM GO 0.8 – ALIEN PLANET</title>
+<title>REALM GO 0.9 – ALIEN PLANET</title>
 
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 
 <style>
- .item-visual{
- width:55px;
- height:63px;
- position:relative;
- display:flex;
- align-items:center;
- justify-content:center;
- transform-origin:bottom center;
- transition:transform .12s ease-out;
- }
 *{box-sizing:border-box}
+
 html,body{
  margin:0;width:100%;height:100%;overflow:hidden;
  background:#101a31;color:white;
  font-family:Arial,sans-serif;
 }
+
 #map{position:absolute;inset:0}
+
 #avatarCanvas{
  position:absolute;inset:0;width:100%;height:100%;
  z-index:5;pointer-events:none;
 }
+
 #atmosphere{
  position:absolute;inset:0;z-index:3;pointer-events:none;
  background:linear-gradient(180deg,#31c9d31a,transparent 35%,#14204a16);
  transition:background 2s;
 }
+
 body.night #atmosphere{
  background:linear-gradient(180deg,#111a4770,transparent 50%,#321b6950);
 }
+
 #scanlines{
  position:absolute;inset:0;z-index:4;pointer-events:none;
  opacity:.12;
@@ -46,6 +41,7 @@ body.night #atmosphere{
   0deg,transparent 0px,transparent 3px,#8afaff20 4px
  );
 }
+
 #loading{
  position:absolute;inset:0;z-index:100;
  display:flex;align-items:center;justify-content:center;
@@ -53,31 +49,38 @@ body.night #atmosphere{
  background:radial-gradient(circle at 50% 35%,#234b72,#10152d 75%);
  transition:opacity .8s;
 }
+
 #loading.hidden{opacity:0;pointer-events:none}
+
 .logo{
  font-size:39px;font-weight:900;letter-spacing:6px;
  color:#e5ffff;text-shadow:0 0 12px #51f7ff,0 0 35px #168aff;
 }
+
 .logo span{color:#80ffe6}
+
 .subtitle{
  margin-top:10px;font-size:10px;letter-spacing:5px;
  color:#8dfaff;
 }
+
 .loader{
  width:46px;height:46px;margin-top:32px;
  border:3px solid #ffffff25;border-top-color:#72faff;
  border-radius:50%;animation:spin 1s linear infinite;
 }
+
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .panel{
- background:linear-gradient(140deg,#102a48eF,#151b3bed);
+ background:linear-gradient(140deg,#102a48ef,#151b3bed);
  border:1px solid #5ef4ff75;
  border-radius:15px;
  box-shadow:0 0 15px #21d8ff20,inset 0 0 15px #25c7ff0b;
  backdrop-filter:blur(14px);
  color:white;
 }
+
 #topbar{
  position:absolute;z-index:20;
  top:calc(10px + env(safe-area-inset-top));
@@ -85,19 +88,25 @@ body.night #atmosphere{
  display:flex;justify-content:space-between;
  pointer-events:none;
 }
+
 #playerInfo{padding:10px 13px;font-size:11px;line-height:1.6}
+
 #playerInfo strong{
  color:#8ffff1;font-size:15px;letter-spacing:2px;
 }
+
 #level{color:#b9d9ef}
+
 #worldClock{
  padding:10px 13px;text-align:right;
  font-size:11px;min-width:100px;
 }
+
 #worldClock strong{
  display:block;color:#8ffff1;font-size:16px;
  letter-spacing:2px;
 }
+
 #worldMode{font-size:9px;letter-spacing:2px;color:#b3d8ff}
 
 #bottom{
@@ -107,10 +116,15 @@ body.night #atmosphere{
  display:flex;align-items:end;justify-content:space-between;
  pointer-events:none;
 }
+
 #bottom .panel{pointer-events:auto;padding:11px 13px}
+
 #locationStatus{font-size:10px;color:#b9edfa;max-width:175px}
+
 #coords{font-size:9px;color:#6eb9d5;margin-top:4px}
+
 .actions{display:flex;gap:8px}
+
 .action{
  width:48px;height:48px;border-radius:15px;
  border:1px solid #66f3ff9c;
@@ -118,6 +132,7 @@ body.night #atmosphere{
  background:linear-gradient(145deg,#17496b,#171d42);
  box-shadow:0 0 15px #20cfff30;
 }
+
 .action:active{transform:scale(.92)}
 
 .mapbtn{
@@ -127,16 +142,20 @@ body.night #atmosphere{
  border:1px solid #65f2ff9c;font-size:21px;
  box-shadow:0 0 15px #19bfff30;
 }
+
 #gpsButton{top:95px}
+
 #zoomControls{
  position:absolute;z-index:25;right:13px;top:146px;
  display:flex;flex-direction:column;gap:7px;
 }
+
 .zoom{
  width:43px;height:43px;border-radius:13px;
  background:#122b4bee;color:#9fffff;
  border:1px solid #65f2ff9c;font-size:24px;
 }
+
 #message{
  position:absolute;z-index:40;top:85px;left:50%;
  transform:translateX(-50%);
@@ -147,27 +166,47 @@ body.night #atmosphere{
  opacity:0;pointer-events:none;transition:opacity .3s;
  max-width:85%;
 }
+
 #message.show{opacity:1}
+
+/* PŘEDMĚTY */
 
 .item-marker{
  width:55px;height:63px;
- position:relative;display:flex;
- align-items:center;justify-content:center;
+ position:relative;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ cursor:pointer;
 }
+
+.item-visual{
+ width:55px;height:63px;
+ position:relative;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ transform-origin:bottom center;
+ transition:transform .12s ease-out;
+}
+
 .item-symbol{
  font-size:31px;z-index:2;
  filter:drop-shadow(0 0 7px #5dfaff);
 }
+
 .item-shadow{
  position:absolute;bottom:2px;width:28px;height:7px;
  border-radius:50%;background:#26c9ff55;
  box-shadow:0 0 12px #31eaff;
 }
+
 .item-ring{
  position:absolute;bottom:0;width:36px;height:13px;
  border:1px solid #60faff;
  border-radius:50%;opacity:.7;
 }
+
 #debug{
  display:none;position:absolute;z-index:200;
  top:35%;left:10px;right:10px;
@@ -175,6 +214,7 @@ body.night #atmosphere{
  background:#32172bee;border:1px solid #ff7373;
  font-size:12px;line-height:1.5;overflow-wrap:anywhere;
 }
+
 #debug button{
  padding:10px 16px;margin-top:12px;
  border:0;border-radius:8px;
@@ -183,6 +223,7 @@ body.night #atmosphere{
 </head>
 
 <body>
+
 <div id="map"></div>
 <canvas id="avatarCanvas"></canvas>
 <div id="atmosphere"></div>
@@ -209,6 +250,7 @@ body.night #atmosphere{
 </div>
 
 <button class="mapbtn" id="gpsButton">◎</button>
+
 <div id="zoomControls">
  <button class="zoom" id="zoomIn">+</button>
  <button class="zoom" id="zoomOut">−</button>
@@ -243,7 +285,8 @@ body.night #atmosphere{
 const $=id=>document.getElementById(id);
 
 let map=null,renderer=null,scene=null,camera=null,avatar=null;
-let parts={},playerPosition=null,lastPosition=null;
+let parts={};
+let playerPosition=null,lastPosition=null;
 let heading=0,walking=false;
 let xp=0,level=1;
 let markers=[];
@@ -251,6 +294,9 @@ let worldItems=[];
 let centered=false,followPlayer=true;
 let worldItemsCreated=false;
 let dayState=null;
+let gpsWatch=null;
+
+/* ZPRÁVY */
 
 function msg(text){
  const e=$("message");
@@ -275,13 +321,18 @@ window.addEventListener("error",e=>{
  console.error(e);
  if(!map)fail(e.message||"Neznámá chyba");
 });
-window.addEventListener("unhandledrejection",e=>console.error(e.reason));
+
+window.addEventListener("unhandledrejection",e=>{
+ console.error(e.reason);
+});
 
 /* DEN A NOC */
 
 function updateDayNight(){
- const hour=new Date().getHours()+new Date().getMinutes()/60;
+ const now=new Date();
+ const hour=now.getHours()+now.getMinutes()/60;
  const isDay=hour>=6&&hour<19;
+
  if(dayState===isDay)return;
  dayState=isDay;
 
@@ -296,17 +347,22 @@ function updateDayNight(){
     "horizon-blend":isDay?0.12:0.18,
     "star-intensity":isDay?0:0.65
    });
-  }catch(e){}
+  }catch(e){
+   console.warn("Fog:",e);
+  }
  }
+
  $("worldMode").textContent=isDay?"ALIEN DAY":"ALIEN NIGHT";
  $("worldMode").style.color=isDay?"#8ffff1":"#c3aaff";
 }
 
 function updateClock(){
  const now=new Date();
+
  $("clock").textContent=now.toLocaleTimeString("cs-CZ",{
   hour:"2-digit",minute:"2-digit"
  });
+
  updateDayNight();
 }
 
@@ -335,7 +391,9 @@ function startMap(){
    touchPitch:false
   });
 
-  map.addControl(new maplibregl.AttributionControl({compact:true}));
+  map.addControl(
+   new maplibregl.AttributionControl({compact:true})
+  );
 
   map.touchZoomRotate.disableRotation();
   map.dragRotate.disable();
@@ -345,13 +403,22 @@ function startMap(){
    followPlayer=false;
   });
 
+  map.on("zoom",updateItemScale);
+
   map.on("load",()=>{
    customizeMap();
    updateDayNight();
+   updateItemScale();
    hideLoading("ALIEN WORLD ONLINE");
+
+   if(playerPosition&&!centered){
+    centerOnPlayer();
+   }
   });
 
-  map.on("error",e=>console.warn("Map:",e.error||e));
+  map.on("error",e=>{
+   console.warn("Map:",e.error||e);
+  });
 
  }catch(e){
   fail("Map engine: "+e.message);
@@ -371,65 +438,84 @@ function customizeMap(){
 
   try{
    if(type==="background"){
-    map.setPaintProperty(layer.id,"background-color","#182b38");
+    map.setPaintProperty(
+     layer.id,"background-color","#182b38"
+    );
    }
 
    if(type==="fill"){
     if(/water|ocean|river|lake/.test(id)){
-     map.setPaintProperty(layer.id,"fill-color","#16a9b9");
-     map.setPaintProperty(layer.id,"fill-opacity",0.9);
+     map.setPaintProperty(
+      layer.id,"fill-color","#16a9b9"
+     );
+     map.setPaintProperty(
+      layer.id,"fill-opacity",0.9
+     );
     }
     else if(/park|grass|wood|forest|landcover|landuse|vegetation/.test(id)){
-     map.setPaintProperty(layer.id,"fill-color",
-      ["case",
-       ["any",["in","wood",["coalesce",["get","class"],""]],
-        ["in","forest",["coalesce",["get","class"],""]]],
-       "#276f5b","#367f68"
-      ]);
-     map.setPaintProperty(layer.id,"fill-opacity",0.9);
+     map.setPaintProperty(
+      layer.id,"fill-color","#367f68"
+     );
+     map.setPaintProperty(
+      layer.id,"fill-opacity",0.9
+     );
     }
     else if(/building/.test(id)){
-     map.setPaintProperty(layer.id,"fill-color","#537d91");
-     map.setPaintProperty(layer.id,"fill-opacity",0.85);
+     map.setPaintProperty(
+      layer.id,"fill-color","#537d91"
+     );
+     map.setPaintProperty(
+      layer.id,"fill-opacity",0.85
+     );
     }
     else if(/land|earth|background/.test(id)){
-     map.setPaintProperty(layer.id,"fill-color","#526e66");
+     map.setPaintProperty(
+      layer.id,"fill-color","#526e66"
+     );
     }
    }
 
    if(type==="line"){
     if(/water/.test(id)){
-     map.setPaintProperty(layer.id,"line-color","#27dce9");
-     map.setPaintProperty(layer.id,"line-opacity",0.9);
+     map.setPaintProperty(
+      layer.id,"line-color","#27dce9"
+     );
+     map.setPaintProperty(
+      layer.id,"line-opacity",0.9
+     );
     }
     else if(/road|street|transportation/.test(id)){
-     map.setPaintProperty(layer.id,"line-color",
-      ["match",["get","class"],
-       "motorway","#b1dce1",
-       "primary","#a2d7d2",
-       "secondary","#9bcfc8",
-       "tertiary","#8dbdb8",
-       "#a1c8c0"
-      ]);
-     map.setPaintProperty(layer.id,"line-opacity",0.95);
+     map.setPaintProperty(
+      layer.id,"line-color","#a1c8c0"
+     );
+     map.setPaintProperty(
+      layer.id,"line-opacity",0.95
+     );
     }
    }
 
    if(type==="symbol"){
     try{
-     map.setPaintProperty(layer.id,"text-color","#e4ffff");
-     map.setPaintProperty(layer.id,"text-halo-color","#18364b");
-     map.setPaintProperty(layer.id,"text-halo-width",1.5);
+     map.setPaintProperty(
+      layer.id,"text-color","#e4ffff"
+     );
+     map.setPaintProperty(
+      layer.id,"text-halo-color","#18364b"
+     );
+     map.setPaintProperty(
+      layer.id,"text-halo-width",1.5
+     );
     }catch(e){}
    }
+
   }catch(e){
    console.log("Vrstva přeskočena:",layer.id,e.message);
   }
  });
 
- // 3D budovy – použijeme skutečný zdroj budov ze stylu.
  const building=layers.find(l=>
-  l.type==="fill"&&l.id.toLowerCase().includes("building")&&
+  l.type==="fill"&&
+  l.id.toLowerCase().includes("building")&&
   l["source-layer"]&&l.source
  );
 
@@ -452,11 +538,26 @@ function customizeMap(){
      "fill-extrusion-opacity":0.78,
      "fill-extrusion-vertical-gradient":true
     }
-   },layers.find(l=>l.type==="symbol")?.id);
+   });
   }catch(e){
    console.log("3D budovy nejsou dostupné:",e);
   }
  }
+}
+
+/* ZOOM PŘEDMĚTŮ */
+
+function updateItemScale(){
+ if(!map)return;
+
+ const scale=Math.max(
+  0.35,
+  Math.min(2.5,Math.pow(2,map.getZoom()-18))
+ );
+
+ document.querySelectorAll(".item-visual").forEach(el=>{
+  el.style.transform="scale("+scale+")";
+ });
 }
 
 /* HERNÍ OBJEKTY – PEVNÉ GPS POZICE */
@@ -464,6 +565,7 @@ function customizeMap(){
 function offsetMeters(lng,lat,east,north){
  const lat2=lat+north/111320;
  const lng2=lng+east/(111320*Math.cos(lat*Math.PI/180));
+
  return [lng2,lat2];
 }
 
@@ -486,14 +588,16 @@ function distanceMeters(a,b){
 function addItem(position,emoji,name){
  const el=document.createElement("div");
  el.className="item-marker";
- const visual=document.createElement("div");
-visual.className="item-visual";
- visual.innerHTML=
- '<span class="item-symbol">'+emoji+'</span>'+
- '<span class="item-shadow"></span>'+
- '<span class="item-ring"></span>';
 
-el.appendChild(visual);
+ const visual=document.createElement("div");
+ visual.className="item-visual";
+
+ visual.innerHTML=
+  '<span class="item-symbol">'+emoji+'</span>'+
+  '<span class="item-shadow"></span>'+
+  '<span class="item-ring"></span>';
+
+ el.appendChild(visual);
 
  const marker=new maplibregl.Marker({
   element:el,
@@ -501,46 +605,27 @@ el.appendChild(visual);
  }).setLngLat(position).addTo(map);
 
  const item={
-  marker,
-  position,
-  name,
+  marker:marker,
+  position:position,
+  name:name,
+  emoji:emoji,
   collected:false
  };
 
  worldItems.push(item);
  markers.push(marker);
-// Přizpůsobení velikosti předmětu zoomu mapy
-function updateItemScale(){
- const scale=Math.max(
-  0.35,
-  Math.min(2.5,Math.pow(2,map.getZoom()-18))
- );
 
- 
-}
+ updateItemScale();
 
-map.on("zoom",updateItemScale);
-map.on("load",updateItemScale);
-updateItemScale();
  el.addEventListener("click",()=>{
   if(!playerPosition){
    msg("Nejdříve potřebuješ GPS signál.");
    return;
   }
-  function updateItemScale(){
- if(!map)return;
 
- const scale=Math.max(
-  0.35,
-  Math.min(2.5,Math.pow(2,map.getZoom()-18))
- );
-
- document.querySelectorAll(".item-visual").forEach(el=>{
-  el.style.transform="scale("+scale+")";
- });
-  }
-
-  const distance=distanceMeters(playerPosition,position);
+  const distance=distanceMeters(
+   playerPosition,item.position
+  );
 
   if(distance>15){
    msg("PŘÍLIŠ DALEKO · "+Math.round(distance)+" m");
@@ -559,7 +644,6 @@ function collectItem(item){
 
  msg("✦ ARTEFAKT ZÍSKÁN: "+item.name);
  addXP(10);
-
  saveCollectedItems();
 }
 
@@ -599,11 +683,24 @@ function createWorldItems(){
  let collected=[];
 
  try{
-  savedWorld=JSON.parse(localStorage.getItem(storageKey));
-  collected=JSON.parse(localStorage.getItem(collectedKey))||[];
- }catch(e){}
+  savedWorld=JSON.parse(
+   localStorage.getItem(storageKey)
+  );
 
- if(!Array.isArray(savedWorld)||savedWorld.length!==objects.length){
+  collected=JSON.parse(
+   localStorage.getItem(collectedKey)
+  )||[];
+
+  if(!Array.isArray(collected))collected=[];
+ }catch(e){
+  savedWorld=null;
+  collected=[];
+ }
+
+ if(
+  !Array.isArray(savedWorld)||
+  savedWorld.length!==objects.length
+ ){
   const [lng,lat]=playerPosition;
 
   savedWorld=objects.map(o=>({
@@ -613,26 +710,40 @@ function createWorldItems(){
   }));
 
   try{
-   localStorage.setItem(storageKey,JSON.stringify(savedWorld));
+   localStorage.setItem(
+    storageKey,JSON.stringify(savedWorld)
+   );
   }catch(e){}
  }
 
  savedWorld.forEach(item=>{
-  if(collected.includes(item.name))return;
+  if(
+   !item||
+   !Array.isArray(item.position)||
+   collected.includes(item.name)
+  )return;
 
-  addItem(item.position,item.emoji,item.name);
+  addItem(
+   item.position,
+   item.emoji,
+   item.name
+  );
  });
+
+ updateItemScale();
 }
 
 /* XP */
 
 function addXP(n){
  xp+=n;
+
  while(xp>=level*100){
   xp-=level*100;
   level++;
   msg("LEVEL UP · "+level);
  }
+
  $("level").textContent=
   "LEVEL "+String(level).padStart(2,"0")+" · "+xp+" XP";
 }
@@ -647,9 +758,15 @@ function createAvatar(){
 
  try{
   renderer=new THREE.WebGLRenderer({
-   canvas:$("avatarCanvas"),alpha:true,antialias:true
+   canvas:$("avatarCanvas"),
+   alpha:true,
+   antialias:true
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+
+  renderer.setPixelRatio(
+   Math.min(devicePixelRatio||1,2)
+  );
+
   renderer.setSize(innerWidth,innerHeight);
 
   scene=new THREE.Scene();
@@ -659,26 +776,40 @@ function createAvatar(){
    innerHeight/2,-innerHeight/2,
    .1,1000
   );
+
   camera.position.set(0,0,150);
   camera.lookAt(0,0,0);
 
-  scene.add(new THREE.AmbientLight(0xffffff,1.7));
+  scene.add(
+   new THREE.AmbientLight(0xffffff,1.7)
+  );
 
-  const light=new THREE.DirectionalLight(0x9afff2,2.2);
+  const light=new THREE.DirectionalLight(
+   0x9afff2,2.2
+  );
+
   light.position.set(-40,80,100);
   scene.add(light);
 
-  const neon=new THREE.PointLight(0x24eaff,1.5,200);
+  const neon=new THREE.PointLight(
+   0x24eaff,1.5,200
+  );
+
   neon.position.set(0,30,40);
   scene.add(neon);
 
   avatar=new THREE.Group();
   scene.add(avatar);
 
-  const material=(color,metalness=0,roughness=.5,emissive=0x000000)=>
-   new THREE.MeshStandardMaterial({
-    color,metalness,roughness,emissive,emissiveIntensity:.5
-   });
+  const material=(
+   color,metalness=0,roughness=.5,emissive=0x000000
+  )=>new THREE.MeshStandardMaterial({
+   color,
+   metalness,
+   roughness,
+   emissive,
+   emissiveIntensity:.5
+  });
 
   const armor=material(0x245a69,.75,.3,0x092b39);
   const armorDark=material(0x142e49,.7,.3,0x071d38);
@@ -694,98 +825,168 @@ function createAvatar(){
    return o;
   }
 
-  // Světelný kruh pod postavou
+  /* Světelný kruh */
+
   const ring=part(
    new THREE.TorusGeometry(19,1.1,8,48),
    metal,avatar,0,2,-8
   );
-  ring.rotation.x=0;
 
   const shadow=part(
    new THREE.CircleGeometry(17,32),
-   new THREE.MeshBasicMaterial({color:0x102a48,transparent:true,opacity:.5}),
+   new THREE.MeshBasicMaterial({
+    color:0x102a48,
+    transparent:true,
+    opacity:.5
+   }),
    avatar,0,1,-9
   );
+
   shadow.scale.set(1.5,.4,1);
 
-  // Energetický batoh
-  const backpack=part(
+  /* Batoh */
+
+  part(
    new THREE.BoxGeometry(17,23,10),
    armorDark,avatar,0,55,-9
   );
 
-  // Dva svítící moduly batohu
-  part(new THREE.BoxGeometry(4,17,3),metal,avatar,-7,55,-15);
-  part(new THREE.BoxGeometry(4,17,3),metal,avatar,7,55,-15);
+  part(
+   new THREE.BoxGeometry(4,17,3),
+   metal,avatar,-7,55,-15
+  );
 
-  // Tělo
+  part(
+   new THREE.BoxGeometry(4,17,3),
+   metal,avatar,7,55,-15
+  );
+
+  /* Tělo */
+
   part(
    new THREE.CapsuleGeometry(10,20,5,12),
    armor,avatar,0,49,3
   );
 
-  // Hrudní energetické jádro
   const core=part(
    new THREE.OctahedronGeometry(5),
    material(0x7efff3,.5,.2,0x18d9e7),
    avatar,0,53,14
   );
 
-  // Hlava
+  /* Hlava */
+
   part(
    new THREE.SphereGeometry(10,24,20),
    skin,avatar,0,78,5
   );
 
-  // Futuristická přilba
-  const helmet=part(
+  part(
    new THREE.SphereGeometry(12,24,18),
    armorDark,avatar,0,82,1
   );
 
-  // Svítící hledí
   part(
    new THREE.BoxGeometry(14,3,2),
    metal,avatar,0,78,13
   );
 
-  // Antény
-  part(new THREE.CylinderGeometry(1,1,10,8),metal,avatar,-8,92,0);
-  part(new THREE.SphereGeometry(2,8,8),gold,avatar,-8,98,0);
+  part(
+   new THREE.CylinderGeometry(1,1,10,8),
+   metal,avatar,-8,92,0
+  );
 
-  // Ramena
-  part(new THREE.SphereGeometry(7,16,16),armor,avatar,-13,57,3);
-  part(new THREE.SphereGeometry(7,16,16),armor,avatar,13,57,3);
+  part(
+   new THREE.SphereGeometry(2,8,8),
+   gold,avatar,-8,98,0
+  );
 
-  // Paže
+  /* Ramena */
+
+  part(
+   new THREE.SphereGeometry(7,16,16),
+   armor,avatar,-13,57,3
+  );
+
+  part(
+   new THREE.SphereGeometry(7,16,16),
+   armor,avatar,13,57,3
+  );
+
+  /* Paže */
+
   const leftArm=new THREE.Group();
   leftArm.position.set(-14,54,4);
   avatar.add(leftArm);
-  part(new THREE.CapsuleGeometry(4,15,4,8),armor,leftArm,0,-10,0);
-  part(new THREE.SphereGeometry(4,12,12),metal,leftArm,0,-19,0);
+
+  part(
+   new THREE.CapsuleGeometry(4,15,4,8),
+   armor,leftArm,0,-10,0
+  );
+
+  part(
+   new THREE.SphereGeometry(4,12,12),
+   metal,leftArm,0,-19,0
+  );
 
   const rightArm=new THREE.Group();
   rightArm.position.set(14,54,4);
   avatar.add(rightArm);
-  part(new THREE.CapsuleGeometry(4,15,4,8),armor,rightArm,0,-10,0);
-  part(new THREE.SphereGeometry(4,12,12),metal,rightArm,0,-19,0);
 
-  // Nohy
+  part(
+   new THREE.CapsuleGeometry(4,15,4,8),
+   armor,rightArm,0,-10,0
+  );
+
+  part(
+   new THREE.SphereGeometry(4,12,12),
+   metal,rightArm,0,-19,0
+  );
+
+  /* Nohy */
+
   const leftLeg=new THREE.Group();
   leftLeg.position.set(-6,31,4);
   avatar.add(leftLeg);
-  part(new THREE.CapsuleGeometry(4,13,4,8),armorDark,leftLeg,0,-9,0);
-  part(new THREE.BoxGeometry(10,7,15),boots,leftLeg,0,-20,4);
-  part(new THREE.BoxGeometry(7,2,2),metal,leftLeg,0,-19,12);
+
+  part(
+   new THREE.CapsuleGeometry(4,13,4,8),
+   armorDark,leftLeg,0,-9,0
+  );
+
+  part(
+   new THREE.BoxGeometry(10,7,15),
+   boots,leftLeg,0,-20,4
+  );
+
+  part(
+   new THREE.BoxGeometry(7,2,2),
+   metal,leftLeg,0,-19,12
+  );
 
   const rightLeg=new THREE.Group();
   rightLeg.position.set(6,31,4);
   avatar.add(rightLeg);
-  part(new THREE.CapsuleGeometry(4,13,4,8),armorDark,rightLeg,0,-9,0);
-  part(new THREE.BoxGeometry(10,7,15),boots,rightLeg,0,-20,4);
-  part(new THREE.BoxGeometry(7,2,2),metal,rightLeg,0,-19,12);
 
-  parts={leftArm,rightArm,leftLeg,rightLeg,ring,core};
+  part(
+   new THREE.CapsuleGeometry(4,13,4,8),
+   armorDark,rightLeg,0,-9,0
+  );
+
+  part(
+   new THREE.BoxGeometry(10,7,15),
+   boots,rightLeg,0,-20,4
+  );
+
+  part(
+   new THREE.BoxGeometry(7,2,2),
+   metal,rightLeg,0,-19,12
+  );
+
+  parts={
+   leftArm,rightArm,leftLeg,rightLeg,ring,core
+  };
+
  }catch(e){
   console.error("Avatar:",e);
   avatar=null;
@@ -800,188 +1001,8 @@ function startGPS(){
   return;
  }
 
+ if(gpsWatch!==null)return;
+
  $("locationStatus").textContent="Vyhledávám signál GPS...";
 
- navigator.geolocation.watchPosition(onPosition,gpsError,{
-  enableHighAccuracy:true,maximumAge:3000,timeout:20000
- });
-}
-
-function onPosition(pos){
- const lng=pos.coords.longitude;
- const lat=pos.coords.latitude;
- if(!Number.isFinite(lng)||!Number.isFinite(lat))return;
-
- playerPosition=[lng,lat];
-
- if(lastPosition){
-  const dx=(lng-lastPosition[0])*111320*Math.cos(lat*Math.PI/180);
-  const dy=(lat-lastPosition[1])*111320;
-  const distance=Math.hypot(dx,dy);
-
-  if(distance>1.5){
-   heading=Math.atan2(dx,dy);
-   walking=true;
-  }else{
-   walking=false;
-  }
- }
-
- lastPosition=[lng,lat];
-
- $("locationStatus").textContent=
-  "GPS ONLINE · "+Math.round(pos.coords.accuracy)+" m";
-
- $("coords").textContent=
-  lat.toFixed(5)+" N  ·  "+lng.toFixed(5)+" E";
-
- if(map&&map.loaded()){
-  if(!centered){
-   centered=true;
-   map.flyTo({
-    center:playerPosition,zoom:18,pitch:55,bearing:0,duration:1800
-   });
-   setTimeout(createWorldItems,2200);
-  }else if(followPlayer){
-   const c=map.getCenter();
-   const dx=(lng-c.lng)*111320*Math.cos(lat*Math.PI/180);
-   const dy=(lat-c.lat)*111320;
-   if(Math.hypot(dx,dy)>8){
-    map.easeTo({center:playerPosition,duration:700});
-   }
-  }
- }
-}
-
-function gpsError(e){
- const errors={
-  1:"Povol přístup k poloze.",
-  2:"GPS signál není dostupný.",
-  3:"GPS odpověděla příliš pozdě."
- };
- $("locationStatus").textContent=errors[e.code]||"GPS ERROR";
-}
-
-/* AVATAR – BEZ NAKLÁPĚNÍ */
-
-function updateAvatar(){
- if(!avatar||!playerPosition||!map||!map.loaded())return;
-
- const p=map.project(playerPosition);
-
- avatar.position.set(
-  p.x-innerWidth/2,
-  innerHeight/2-p.y,
-  0
- );
-
- // Celá postava zůstává vzpřímená.
- // Otáčí se výhradně kolem svislé osy Y.
- avatar.rotation.set(0,heading,0);
- // Velikost avatara se přizpůsobuje zoomu mapy
-const zoomScale=Math.pow(2,map.getZoom()-18);
-const avatarScale=Math.max(0.35,Math.min(2.5,zoomScale));
-
-avatar.scale.setScalar(avatarScale);
-
- const t=performance.now()*.008;
-
- if(walking){
-  parts.leftLeg.rotation.x=Math.sin(t)*.4;
-  parts.rightLeg.rotation.x=-Math.sin(t)*.4;
-  parts.leftArm.rotation.x=-Math.sin(t)*.3;
-  parts.rightArm.rotation.x=Math.sin(t)*.3;
-  avatar.position.y+=Math.abs(Math.sin(t*2))*1.4;
- }else{
-  parts.leftLeg.rotation.x=0;
-  parts.rightLeg.rotation.x=0;
-  parts.leftArm.rotation.x=0;
-  parts.rightArm.rotation.x=0;
-  avatar.position.y+=Math.sin(t*.4)*.7;
- }
-
- parts.ring.rotation.z=t*.3;
- parts.core.rotation.y=t*.8;
- parts.core.rotation.x=t*.5;
-}
-
-function animate(){
- requestAnimationFrame(animate);
- if(renderer&&scene&&camera){
-  updateAvatar();
-  renderer.render(scene,camera);
- }
-}
-
-/* OVLÁDÁNÍ */
-
-$("gpsButton").onclick=()=>{
- if(playerPosition&&map){
-  followPlayer=true;
-  map.flyTo({
-   center:playerPosition,zoom:18,pitch:55,bearing:0,duration:1200
-  });
- }else startGPS();
-};
-
-$("zoomIn").onclick=()=>map&&map.zoomIn();
-$("zoomOut").onclick
-=()=>map&&map.zoomOut();
-
-$("inventoryButton").onclick=()=>{
- msg("INVENTÁŘ · Zatím nemáš žádné artefakty.");
-};
-
-$("worldButton").onclick=()=>{
- if(!map)return;
- const pitch=map.getPitch()>30?0:55;
- map.easeTo({pitch,duration:900});
- msg(pitch===55?"3D POHLED AKTIVNÍ":"POHLED SHORA");
-};
-
-window.addEventListener("resize",()=>{
- if(renderer){
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
- }
- if(camera){
-  camera.left=-innerWidth/2;
-  camera.right=innerWidth/2;
-  camera.top=innerHeight/2;
-  camera.bottom=-innerHeight/2;
-  camera.updateProjectionMatrix();
- }
- if(map)map.resize();
-});
-
-function boot(){
- updateClock();
- setInterval(updateClock,30000);
-
- try{
-  createAvatar();
-  animate();
- }catch(e){
-  console.error("3D inicializace:",e);
- }
-
- startMap();
- startGPS();
-
- setTimeout(()=>{
-  if(!$("loading").classList.contains("hidden")){
-   if(map&&map.loaded()){
-    hideLoading("ALIEN WORLD ONLINE");
-   }else{
-    fail("Mapa se nenačetla. Zkontroluj internetové připojení a dostupnost mapových dlaždic.");
-   }
-  }
- },22000);
-}
-
-boot();
-
-})();
-</script>
-</body>
-</html>
+ gp
