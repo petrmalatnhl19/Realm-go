@@ -237,6 +237,7 @@ let parts={},playerPosition=null,lastPosition=null;
 let heading=0,walking=false;
 let xp=0,level=1;
 let markers=[];
+let worldItems=[];
 let centered=false,followPlayer=true;
 let worldItemsCreated=false;
 let dayState=null;
@@ -448,12 +449,28 @@ function customizeMap(){
  }
 }
 
-/* HERNÍ OBJEKTY */
+/* HERNÍ OBJEKTY – PEVNÉ GPS POZICE */
 
 function offsetMeters(lng,lat,east,north){
  const lat2=lat+north/111320;
  const lng2=lng+east/(111320*Math.cos(lat*Math.PI/180));
  return [lng2,lat2];
+}
+
+function distanceMeters(a,b){
+ const R=6371000;
+ const rad=x=>x*Math.PI/180;
+
+ const dLat=rad(b[1]-a[1]);
+ const dLng=rad(b[0]-a[0]);
+
+ const h=
+  Math.sin(dLat/2)**2+
+  Math.cos(rad(a[1]))*
+  Math.cos(rad(b[1]))*
+  Math.sin(dLng/2)**2;
+
+ return 2*R*Math.asin(Math.sqrt(h));
 }
 
 function addItem(position,emoji,name){
@@ -465,23 +482,71 @@ function addItem(position,emoji,name){
   '<span class="item-ring"></span>';
 
  const marker=new maplibregl.Marker({
-  element:el,anchor:"bottom"
+  element:el,
+  anchor:"bottom"
  }).setLngLat(position).addTo(map);
 
- el.addEventListener("click",()=>{
-  marker.remove();
-  msg("✦ ARTEFAKT ZÍSKÁN: "+name);
-  addXP(10);
- });
+ const item={
+  marker,
+  position,
+  name,
+  collected:false
+ };
 
+ worldItems.push(item);
  markers.push(marker);
+
+ el.addEventListener("click",()=>{
+  if(!playerPosition){
+   msg("Nejdříve potřebuješ GPS signál.");
+   return;
+  }
+
+  const distance=distanceMeters(playerPosition,position);
+
+  if(distance>15){
+   msg("PŘÍLIŠ DALEKO · "+Math.round(distance)+" m");
+   return;
+  }
+
+  collectItem(item);
+ });
+}
+
+function collectItem(item){
+ if(item.collected)return;
+
+ item.collected=true;
+ item.marker.remove();
+
+ msg("✦ ARTEFAKT ZÍSKÁN: "+item.name);
+ addXP(10);
+
+ saveCollectedItems();
+}
+
+function saveCollectedItems(){
+ try{
+  const collected=worldItems
+   .filter(item=>item.collected)
+   .map(item=>item.name);
+
+  localStorage.setItem(
+   "realmGoCollectedV1",
+   JSON.stringify(collected)
+  );
+ }catch(e){
+  console.warn("Uložení inventáře:",e);
+ }
 }
 
 function createWorldItems(){
  if(worldItemsCreated||!playerPosition||!map)return;
+
  worldItemsCreated=true;
 
- const [lng,lat]=playerPosition;
+ const storageKey="realmGoWorldV1";
+ const collectedKey="realmGoCollectedV1";
 
  const objects=[
   [28,15,"💎","Energetický krystal"],
@@ -492,8 +557,32 @@ function createWorldItems(){
   [-65,5,"🌀","Energetický portál"]
  ];
 
- objects.forEach(o=>{
-  addItem(offsetMeters(lng,lat,o[0],o[1]),o[2],o[3]);
+ let savedWorld=null;
+ let collected=[];
+
+ try{
+  savedWorld=JSON.parse(localStorage.getItem(storageKey));
+  collected=JSON.parse(localStorage.getItem(collectedKey))||[];
+ }catch(e){}
+
+ if(!Array.isArray(savedWorld)||savedWorld.length!==objects.length){
+  const [lng,lat]=playerPosition;
+
+  savedWorld=objects.map(o=>({
+   position:offsetMeters(lng,lat,o[0],o[1]),
+   emoji:o[2],
+   name:o[3]
+  }));
+
+  try{
+   localStorage.setItem(storageKey,JSON.stringify(savedWorld));
+  }catch(e){}
+ }
+
+ savedWorld.forEach(item=>{
+  if(collected.includes(item.name))return;
+
+  addItem(item.position,item.emoji,item.name);
  });
 }
 
