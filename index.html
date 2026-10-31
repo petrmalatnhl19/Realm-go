@@ -794,3 +794,62 @@ $("gpsButton").onclick=()=>{
 
 $("zoomIn").onclick=()=>map&&map.zoomIn();
 $("zoomOut").onclick
+=()=>map&&map.zoomOut();
+
+$("inventoryButton").onclick=()=>{
+ msg("INVENTÁŘ · Zatím nemáš žádné artefakty.");
+};
+
+$("worldButton").onclick=()=>{
+ if(!map)return;
+ const pitch=map.getPitch()>30?0:55;
+ map.easeTo({pitch,duration:900});
+ msg(pitch===55?"3D POHLED AKTIVNÍ":"POHLED SHORA");
+};
+
+window.addEventListener("resize",()=>{
+ if(renderer){
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ }
+ if(camera){
+  camera.left=-innerWidth/2;
+  camera.right=innerWidth/2;
+  camera.top=innerHeight/2;
+  camera.bottom=-innerHeight/2;
+  camera.updateProjectionMatrix();
+ }
+ if(map)map.resize();
+});
+
+function boot(){
+ updateClock();
+ setInterval(updateClock,30000);
+
+ try{
+  createAvatar();
+  animate();
+ }catch(e){
+  console.error("3D inicializace:",e);
+ }
+
+ startMap();
+ startGPS();
+
+ setTimeout(()=>{
+  if(!$("loading").classList.contains("hidden")){
+   if(map&&map.loaded()){
+    hideLoading("ALIEN WORLD ONLINE");
+   }else{
+    fail("Mapa se nenačetla. Zkontroluj internetové připojení a dostupnost mapových dlaždic.");
+   }
+  }
+ },22000);
+}
+
+boot();
+
+})();
+</script>
+</body>
+</html>
