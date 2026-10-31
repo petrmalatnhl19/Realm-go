@@ -1,0 +1,614 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#07121e">
+<title>REALM GO</title>
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<style>
+* {
+ box-sizing:border-box;
+ margin:0;
+ padding:0;
+}
+
+body {
+ background:#07121e;
+ color:white;
+ font-family:Arial,sans-serif;
+ overflow:hidden;
+}
+
+#map {
+ position:absolute;
+ inset:0;
+}
+
+.topbar {
+ position:absolute;
+ top:15px;
+ left:12px;
+ right:12px;
+ z-index:10;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ pointer-events:none;
+}
+
+.logo {
+ background:rgba(3,15,27,.88);
+ border:1px solid #36eaff;
+ border-radius:13px;
+ padding:11px 15px;
+ box-shadow:0 0 20px #00cfff33;
+}
+
+.logo strong {
+ color:#62edff;
+ letter-spacing:3px;
+ font-size:17px;
+}
+
+.logo small {
+ display:block;
+ font-size:8px;
+ letter-spacing:2px;
+ margin-top:4px;
+ color:#b8d9e5;
+}
+
+.gps-status {
+ background:rgba(3,15,27,.9);
+ border:1px solid #36eaff77;
+ padding:10px;
+ border-radius:12px;
+ font-size:10px;
+}
+
+#gpsStatus {
+ color:#ffca65;
+}
+
+.controls {
+ position:absolute;
+ z-index:10;
+ right:12px;
+ top:100px;
+ display:flex;
+ flex-direction:column;
+ gap:9px;
+}
+
+button {
+ border:1px solid #50eaff88;
+ background:rgba(5,22,38,.92);
+ color:white;
+ border-radius:13px;
+ padding:12px;
+ font-weight:bold;
+ cursor:pointer;
+ box-shadow:0 0 15px #00cfff22;
+}
+
+.controls button {
+ width:46px;
+ height:46px;
+ font-size:18px;
+}
+
+button:active {
+ background:#087a9b;
+}
+
+.bottom {
+ position:absolute;
+ z-index:10;
+ left:12px;
+ right:12px;
+ bottom:calc(15px + env(safe-area-inset-bottom));
+ display:flex;
+ gap:9px;
+ align-items:stretch;
+}
+
+.info {
+ flex:1;
+ min-width:0;
+ padding:13px;
+ background:rgba(3,15,27,.91);
+ border:1px solid #36eaff77;
+ border-radius:15px;
+ backdrop-filter:blur(12px);
+}
+
+.info strong {
+ color:#62edff;
+ font-size:13px;
+}
+
+.info small {
+ display:block;
+ margin-top:6px;
+ font-size:10px;
+ color:#a9c7d5;
+}
+
+.locate {
+ background:linear-gradient(135deg,#8dfaff,#24a8d4);
+ color:#061521;
+ border:none;
+ min-width:105px;
+}
+
+.player {
+ width:44px;
+ height:44px;
+ border-radius:50%;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:21px;
+ color:white;
+ background:radial-gradient(circle,#fff 0%,#65f3ff 20%,#0787c1 55%,#03213d 75%);
+ border:2px solid white;
+ box-shadow:0 0 12px #00eaff,0 0 30px #00bfff;
+}
+
+#toast {
+ position:absolute;
+ z-index:20;
+ top:80px;
+ left:50%;
+ transform:translateX(-50%);
+ background:#071d30;
+ border:1px solid #46eaff;
+ border-radius:10px;
+ padding:12px;
+ font-size:12px;
+ text-align:center;
+ display:none;
+ width:max-content;
+ max-width:90%;
+}
+
+.maplibregl-ctrl-group {
+ background:#061827!important;
+}
+
+.maplibregl-ctrl button span {
+ filter:invert(1);
+}
+
+@media(min-width:700px) {
+ .bottom {
+  max-width:500px;
+  left:20px;
+ }
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="topbar">
+ <div class="logo">
+  <strong>REALM GO</strong>
+  <small>REAL WORLD EXPLORATION</small>
+ </div>
+
+ <div class="gps-status">
+  <span id="gpsStatus">● GPS NEAKTIVNÍ</span>
+ </div>
+</div>
+
+<div class="controls">
+ <button id="toggle3d">3D</button>
+ <button id="north">N</button>
+ <button id="zoomIn">＋</button>
+ <button id="zoomOut">－</button>
+</div>
+
+<div class="bottom">
+
+ <div class="info">
+  <strong id="playerName">PRŮZKUMNÍK</strong>
+  <small id="coordinates">Čekám na GPS polohu...</small>
+  <small>SVĚT REALM GO • LEVEL 1</small>
+ </div>
+
+ <button class="locate" id="locate">
+  ◎ POLOHA
+ </button>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+
+// ======================================
+// REALM GO — MAP ENGINE
+// ======================================
+
+const map = new maplibregl.Map({
+
+ container:'map',
+
+ center:[14.65,49.42],
+
+ zoom:15,
+
+ pitch:50,
+
+ bearing:0,
+
+ antialias:true,
+
+ style:{
+
+  version:8,
+
+  sources:{
+
+   osm:{
+
+    type:'raster',
+
+    tiles:[
+     'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    ],
+
+    tileSize:256,
+
+    attribution:'© OpenStreetMap contributors'
+
+   }
+
+  },
+
+  layers:[
+
+   {
+
+    id:'osm',
+
+    type:'raster',
+
+    source:'osm',
+
+    paint:{
+
+     'raster-saturation':-0.25,
+
+     'raster-contrast':0.12,
+
+     'raster-brightness-max':0.95
+
+    }
+
+   }
+
+  ]
+
+ }
+
+});
+
+map.addControl(
+ new maplibregl.NavigationControl({
+  showCompass:false
+ }),
+ 'bottom-right'
+);
+
+
+// ======================================
+// PLAYER
+// ======================================
+
+let playerMarker=null;
+let currentPosition=null;
+let watchID=null;
+let followPlayer=true;
+let is3D=true;
+
+function createPlayer(){
+
+ const element=document.createElement('div');
+
+ element.className='player';
+
+ element.innerHTML='✦';
+
+ return element;
+
+}
+
+
+// ======================================
+// GPS
+// ======================================
+
+function showPosition(position){
+
+ const lat=position.coords.latitude;
+
+ const lon=position.coords.longitude;
+
+ const accuracy=position.coords.accuracy;
+
+ currentPosition={lat,lon};
+
+ document.getElementById('gpsStatus').innerHTML=
+ '● GPS AKTIVNÍ';
+
+ document.getElementById('gpsStatus').style.color=
+ '#70ffb1';
+
+ document.getElementById('coordinates').innerHTML=
+ lat.toFixed(5)+' / '+lon.toFixed(5)+
+ ' • ±'+Math.round(accuracy)+' m';
+
+ if(!playerMarker){
+
+  playerMarker=new maplibregl.Marker({
+
+   element:createPlayer(),
+
+   anchor:'center'
+
+  })
+
+  .setLngLat([lon,lat])
+
+  .addTo(map);
+
+ }else{
+
+  playerMarker.setLngLat([lon,lat]);
+
+ }
+
+ if(followPlayer){
+
+  map.easeTo({
+
+   center:[lon,lat],
+
+   duration:700
+
+  });
+
+ }
+
+}
+
+
+function startGPS(){
+
+ if(!navigator.geolocation){
+
+  showToast('GPS není podporováno.');
+
+  return;
+
+ }
+
+ document.getElementById('gpsStatus').innerHTML=
+ '● NAČÍTÁM GPS';
+
+ navigator.geolocation.getCurrentPosition(
+
+  function(position){
+
+   showPosition(position);
+
+   if(watchID===null){
+
+    watchID=navigator.geolocation.watchPosition(
+
+     showPosition,
+
+     gpsError,
+
+     {
+
+      enableHighAccuracy:true,
+
+      maximumAge:2000,
+
+      timeout:20000
+
+     }
+
+    );
+
+   }
+
+  },
+
+  gpsError,
+
+  {
+
+   enableHighAccuracy:true,
+
+   timeout:15000,
+
+   maximumAge:0
+
+  }
+
+ );
+
+}
+
+
+function gpsError(error){
+
+ document.getElementById('gpsStatus').innerHTML=
+ '● GPS CHYBA';
+
+ let message='Zkontroluj oprávnění polohy.';
+
+ if(error.code===1){
+  message='Povol aplikaci přístup k poloze.';
+ }
+
+ if(error.code===2){
+  message='GPS poloha není dostupná.';
+ }
+
+ if(error.code===3){
+  message='Vypršel čas načítání GPS.';
+ }
+
+ showToast(message);
+
+}
+
+
+// ======================================
+// CAMERA
+// ======================================
+
+document.getElementById('locate').onclick=function(){
+
+ followPlayer=true;
+
+ if(currentPosition){
+
+  map.flyTo({
+
+   center:[
+    currentPosition.lon,
+    currentPosition.lat
+   ],
+
+   zoom:17,
+
+   pitch:is3D?55:0,
+
+   duration:1000
+
+  });
+
+ }
+
+ startGPS();
+
+};
+
+
+document.getElementById('toggle3d').onclick=function(){
+
+ is3D=!is3D;
+
+ map.easeTo({
+
+  pitch:is3D?55:0,
+
+  duration:800
+
+ });
+
+ this.innerHTML=is3D?'3D':'2D';
+
+};
+
+
+document.getElementById('north').onclick=function(){
+
+ map.easeTo({
+
+  bearing:0,
+
+  duration:700
+
+ });
+
+};
+
+
+document.getElementById('zoomIn').onclick=function(){
+
+ map.zoomTo(map.getZoom()+1);
+
+};
+
+
+document.getElementById('zoomOut').onclick=function(){
+
+ map.zoomTo(map.getZoom()-1);
+
+};
+
+
+// ======================================
+// FOLLOW CAMERA
+// ======================================
+
+map.on('dragstart',function(){
+
+ followPlayer=false;
+
+});
+
+
+// ======================================
+// NOTIFICATIONS
+// ======================================
+
+function showToast(message){
+
+ const toast=document.getElementById('toast');
+
+ toast.innerHTML=message;
+
+ toast.style.display='block';
+
+ clearTimeout(window.toastTimer);
+
+ window.toastTimer=setTimeout(function(){
+
+  toast.style.display='none';
+
+ },3500);
+
+}
+
+
+// ======================================
+// START
+// ======================================
+
+map.on('load',function(){
+
+ showToast(
+  'Vítej ve světě REALM GO. Aktivuj GPS a vydej se na průzkum.'
+ );
+
+});
+
+
+// Automatické načtení polohy po spuštění.
+// Prohlížeč může vyžadovat předchozí souhlas uživatele.
+
+if(navigator.geolocation){
+
+ startGPS();
+
+}
+
+</script>
+
+</body>
+</html>
