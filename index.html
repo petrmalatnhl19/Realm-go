@@ -1,229 +1,151 @@
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#101c39">
-<title>REALM GO 0.9 – ALIEN PLANET</title>
+<title>REALM GO 1.0 – ALIEN PLANET</title>
 
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 
 <style>
 *{box-sizing:border-box}
-
 html,body{
  margin:0;width:100%;height:100%;overflow:hidden;
- background:#101a31;color:white;
- font-family:Arial,sans-serif;
+ background:#101a31;color:white;font-family:Arial,sans-serif
 }
-
 #map{position:absolute;inset:0}
-
 #avatarCanvas{
  position:absolute;inset:0;width:100%;height:100%;
- z-index:5;pointer-events:none;
+ z-index:5;pointer-events:none
 }
-
 #atmosphere{
  position:absolute;inset:0;z-index:3;pointer-events:none;
- background:linear-gradient(180deg,#31c9d31a,transparent 35%,#14204a16);
- transition:background 2s;
+ background:linear-gradient(180deg,#31c9d326,transparent 40%,#14204a20)
 }
-
 body.night #atmosphere{
- background:linear-gradient(180deg,#111a4770,transparent 50%,#321b6950);
+ background:linear-gradient(180deg,#111a4770,transparent 50%,#321b6950)
 }
-
 #scanlines{
  position:absolute;inset:0;z-index:4;pointer-events:none;
- opacity:.12;
+ opacity:.1;
  background:repeating-linear-gradient(
-  0deg,transparent 0px,transparent 3px,#8afaff20 4px
- );
+  0deg,transparent 0,transparent 3px,#8afaff20 4px
+ )
 }
-
 #loading{
  position:absolute;inset:0;z-index:100;
  display:flex;align-items:center;justify-content:center;
  flex-direction:column;text-align:center;
  background:radial-gradient(circle at 50% 35%,#234b72,#10152d 75%);
- transition:opacity .8s;
+ transition:opacity .7s
 }
-
 #loading.hidden{opacity:0;pointer-events:none}
-
 .logo{
  font-size:39px;font-weight:900;letter-spacing:6px;
- color:#e5ffff;text-shadow:0 0 12px #51f7ff,0 0 35px #168aff;
+ color:#e5ffff;text-shadow:0 0 12px #51f7ff,0 0 35px #168aff
 }
-
 .logo span{color:#80ffe6}
-
-.subtitle{
- margin-top:10px;font-size:10px;letter-spacing:5px;
- color:#8dfaff;
-}
-
+.subtitle{margin-top:10px;font-size:10px;letter-spacing:5px;color:#8dfaff}
 .loader{
  width:46px;height:46px;margin-top:32px;
  border:3px solid #ffffff25;border-top-color:#72faff;
- border-radius:50%;animation:spin 1s linear infinite;
+ border-radius:50%;animation:spin 1s linear infinite
 }
-
 @keyframes spin{to{transform:rotate(360deg)}}
-
 .panel{
  background:linear-gradient(140deg,#102a48ef,#151b3bed);
- border:1px solid #5ef4ff75;
- border-radius:15px;
+ border:1px solid #5ef4ff75;border-radius:15px;
  box-shadow:0 0 15px #21d8ff20,inset 0 0 15px #25c7ff0b;
- backdrop-filter:blur(14px);
- color:white;
+ backdrop-filter:blur(14px);color:white
 }
-
 #topbar{
- position:absolute;z-index:20;
- top:calc(10px + env(safe-area-inset-top));
- left:12px;right:12px;
- display:flex;justify-content:space-between;
- pointer-events:none;
+ position:absolute;z-index:20;top:calc(10px + env(safe-area-inset-top));
+ left:12px;right:12px;display:flex;justify-content:space-between;
+ pointer-events:none
 }
-
 #playerInfo{padding:10px 13px;font-size:11px;line-height:1.6}
-
-#playerInfo strong{
- color:#8ffff1;font-size:15px;letter-spacing:2px;
-}
-
+#playerInfo strong{color:#8ffff1;font-size:15px;letter-spacing:2px}
 #level{color:#b9d9ef}
-
-#worldClock{
- padding:10px 13px;text-align:right;
- font-size:11px;min-width:100px;
-}
-
-#worldClock strong{
- display:block;color:#8ffff1;font-size:16px;
- letter-spacing:2px;
-}
-
+#worldClock{padding:10px 13px;text-align:right;font-size:11px;min-width:100px}
+#worldClock strong{display:block;color:#8ffff1;font-size:16px;letter-spacing:2px}
 #worldMode{font-size:9px;letter-spacing:2px;color:#b3d8ff}
-
 #bottom{
- position:absolute;z-index:20;
- left:12px;right:12px;
+ position:absolute;z-index:20;left:12px;right:12px;
  bottom:calc(13px + env(safe-area-inset-bottom));
  display:flex;align-items:end;justify-content:space-between;
- pointer-events:none;
+ pointer-events:none
 }
-
 #bottom .panel{pointer-events:auto;padding:11px 13px}
-
 #locationStatus{font-size:10px;color:#b9edfa;max-width:175px}
-
 #coords{font-size:9px;color:#6eb9d5;margin-top:4px}
-
 .actions{display:flex;gap:8px}
-
 .action{
  width:48px;height:48px;border-radius:15px;
- border:1px solid #66f3ff9c;
- color:#a7ffff;font-size:21px;
+ border:1px solid #66f3ff9c;color:#a7ffff;font-size:21px;
  background:linear-gradient(145deg,#17496b,#171d42);
- box-shadow:0 0 15px #20cfff30;
+ box-shadow:0 0 15px #20cfff30
 }
-
 .action:active{transform:scale(.92)}
-
 .mapbtn{
- position:absolute;z-index:25;right:13px;
- width:43px;height:43px;border-radius:13px;
- background:#122b4bee;color:#9fffff;
+ position:absolute;z-index:25;right:13px;width:43px;height:43px;
+ border-radius:13px;background:#122b4bee;color:#9fffff;
  border:1px solid #65f2ff9c;font-size:21px;
- box-shadow:0 0 15px #19bfff30;
+ box-shadow:0 0 15px #19bfff30
 }
-
 #gpsButton{top:95px}
-
 #zoomControls{
  position:absolute;z-index:25;right:13px;top:146px;
- display:flex;flex-direction:column;gap:7px;
+ display:flex;flex-direction:column;gap:7px
 }
-
 .zoom{
  width:43px;height:43px;border-radius:13px;
  background:#122b4bee;color:#9fffff;
- border:1px solid #65f2ff9c;font-size:24px;
+ border:1px solid #65f2ff9c;font-size:24px
 }
-
 #message{
  position:absolute;z-index:40;top:85px;left:50%;
- transform:translateX(-50%);
- padding:11px 17px;border-radius:13px;
- background:#102e4bee;border:1px solid #71faff;
- color:white;font-size:12px;text-align:center;
+ transform:translateX(-50%);padding:11px 17px;
+ border-radius:13px;background:#102e4bee;
+ border:1px solid #71faff;color:white;
+ font-size:12px;text-align:center;
  box-shadow:0 0 20px #26dfff55;
  opacity:0;pointer-events:none;transition:opacity .3s;
- max-width:85%;
+ max-width:85%
 }
-
 #message.show{opacity:1}
-
-/* PŘEDMĚTY */
-
 .item-marker{
- width:55px;height:63px;
- position:relative;
- display:flex;
- align-items:center;
- justify-content:center;
- cursor:pointer;
+ width:55px;height:63px;position:relative;
+ display:flex;align-items:center;justify-content:center;
+ cursor:pointer
 }
-
 .item-visual{
- width:55px;height:63px;
- position:relative;
- display:flex;
- align-items:center;
- justify-content:center;
- transform-origin:bottom center;
- transition:transform .12s ease-out;
+ width:55px;height:63px;position:relative;
+ display:flex;align-items:center;justify-content:center;
+ transform-origin:bottom center;transition:transform .12s
 }
-
-.item-symbol{
- font-size:31px;z-index:2;
- filter:drop-shadow(0 0 7px #5dfaff);
-}
-
+.item-symbol{font-size:31px;z-index:2;filter:drop-shadow(0 0 7px #5dfaff)}
 .item-shadow{
  position:absolute;bottom:2px;width:28px;height:7px;
- border-radius:50%;background:#26c9ff55;
- box-shadow:0 0 12px #31eaff;
+ border-radius:50%;background:#26c9ff55;box-shadow:0 0 12px #31eaff
 }
-
 .item-ring{
  position:absolute;bottom:0;width:36px;height:13px;
- border:1px solid #60faff;
- border-radius:50%;opacity:.7;
+ border:1px solid #60faff;border-radius:50%;opacity:.7
 }
-
 #debug{
  display:none;position:absolute;z-index:200;
- top:35%;left:10px;right:10px;
- padding:16px;border-radius:14px;
- background:#32172bee;border:1px solid #ff7373;
- font-size:12px;line-height:1.5;overflow-wrap:anywhere;
+ top:35%;left:10px;right:10px;padding:16px;
+ border-radius:14px;background:#32172bee;
+ border:1px solid #ff7373;font-size:12px;
+ line-height:1.5;overflow-wrap:anywhere
 }
-
-#debug button{
- padding:10px 16px;margin-top:12px;
- border:0;border-radius:8px;
-}
+#debug button{padding:10px 16px;margin-top:12px;border:0;border-radius:8px}
 </style>
 </head>
 
 <body>
-
 <div id="map"></div>
 <canvas id="avatarCanvas"></canvas>
 <div id="atmosphere"></div>
@@ -250,7 +172,6 @@ body.night #atmosphere{
 </div>
 
 <button class="mapbtn" id="gpsButton">◎</button>
-
 <div id="zoomControls">
  <button class="zoom" id="zoomIn">+</button>
  <button class="zoom" id="zoomOut">−</button>
@@ -261,7 +182,7 @@ body.night #atmosphere{
 <div id="bottom">
  <div class="panel">
   <div id="locationStatus">Připojuji GPS...</div>
-  <div id="coords">SYSTÉM ONLINE</div>
+  <div id="coords">ČEKÁM NA POLOHU</div>
  </div>
  <div class="actions">
   <button class="action" id="inventoryButton">▤</button>
@@ -284,49 +205,54 @@ body.night #atmosphere{
 
 const $=id=>document.getElementById(id);
 
-let map=null,renderer=null,scene=null,camera=null,avatar=null;
+let map=null;
+let renderer=null,scene=null,camera=null,avatar=null;
 let parts={};
 let playerPosition=null,lastPosition=null;
-let heading=0,walking=false;
 let xp=0,level=1;
-let markers=[];
 let worldItems=[];
-let centered=false,followPlayer=true;
+let followPlayer=true;
 let worldItemsCreated=false;
 let dayState=null;
 let gpsWatch=null;
-
-/* ZPRÁVY */
+let mapReady=false;
+let loadingHidden=false;
+let messageTimer=null;
 
 function msg(text){
- const e=$("message");
- e.textContent=text;
- e.classList.add("show");
- setTimeout(()=>e.classList.remove("show"),2700);
+ const el=$("message");
+ el.textContent=text;
+ el.classList.add("show");
+ clearTimeout(messageTimer);
+ messageTimer=setTimeout(()=>el.classList.remove("show"),2800);
 }
 
 function hideLoading(text){
+ if(loadingHidden)return;
+ loadingHidden=true;
  $("loadingText").textContent=text||"SYSTEM ONLINE";
  $("loading").classList.add("hidden");
- setTimeout(()=>$("loading").style.display="none",900);
+ setTimeout(()=>$("loading").style.display="none",800);
 }
 
 function fail(text){
+ console.error("REALM GO:",text);
  $("debugText").textContent=text;
  $("debug").style.display="block";
  hideLoading("Částečný režim aktivní");
 }
 
 window.addEventListener("error",e=>{
- console.error(e);
- if(!map)fail(e.message||"Neznámá chyba");
+ console.error(e.message,e.filename,e.lineno);
+ if(!mapReady)fail("Chyba aplikace: "+(e.message||"Neznámá chyba"));
 });
 
 window.addEventListener("unhandledrejection",e=>{
- console.error(e.reason);
+ console.error("Promise:",e.reason);
+ if(!mapReady)fail("Chyba načítání: "+String(e.reason));
 });
 
-/* DEN A NOC */
+/* ČAS A DEN/NOC */
 
 function updateDayNight(){
  const now=new Date();
@@ -335,21 +261,18 @@ function updateDayNight(){
 
  if(dayState===isDay)return;
  dayState=isDay;
-
  document.body.classList.toggle("night",!isDay);
 
- if(map&&map.loaded()){
+ if(map&&mapReady){
   try{
    map.setFog({
     color:isDay?"#c4e7d7":"#111a42",
     "high-color":isDay?"#8fd9d3":"#202b70",
     "space-color":isDay?"#d6eee0":"#080d2b",
-    "horizon-blend":isDay?0.12:0.18,
-    "star-intensity":isDay?0:0.65
+    "horizon-blend":isDay?.12:.18,
+    "star-intensity":isDay?0:.65
    });
-  }catch(e){
-   console.warn("Fog:",e);
-  }
+  }catch(e){}
  }
 
  $("worldMode").textContent=isDay?"ALIEN DAY":"ALIEN NIGHT";
@@ -357,12 +280,9 @@ function updateDayNight(){
 }
 
 function updateClock(){
- const now=new Date();
-
- $("clock").textContent=now.toLocaleTimeString("cs-CZ",{
+ $("clock").textContent=new Date().toLocaleTimeString("cs-CZ",{
   hour:"2-digit",minute:"2-digit"
  });
-
  updateDayNight();
 }
 
@@ -370,7 +290,7 @@ function updateClock(){
 
 function startMap(){
  if(typeof maplibregl==="undefined"){
-  fail("MapLibre se nepodařilo načíst. Zkontroluj internet.");
+  fail("MapLibre se nepodařilo načíst. Zkontroluj internetové připojení.");
   return;
  }
 
@@ -378,7 +298,7 @@ function startMap(){
   map=new maplibregl.Map({
    container:"map",
    style:"https://tiles.openfreemap.org/styles/liberty",
-   center:[15,49],
+   center:[14.65,49.35],
    zoom:14,
    pitch:55,
    bearing:0,
@@ -391,33 +311,29 @@ function startMap(){
    touchPitch:false
   });
 
-  map.addControl(
-   new maplibregl.AttributionControl({compact:true})
-  );
-
+  map.addControl(new maplibregl.AttributionControl({compact:true}));
   map.touchZoomRotate.disableRotation();
   map.dragRotate.disable();
   map.keyboard.disableRotation();
 
-  map.on("dragstart",()=>{
-   followPlayer=false;
-  });
-
+  map.on("dragstart",()=>{followPlayer=false});
   map.on("zoom",updateItemScale);
+  map.on("move",updateAvatarPosition);
 
   map.on("load",()=>{
+   mapReady=true;
    customizeMap();
    updateDayNight();
    updateItemScale();
    hideLoading("ALIEN WORLD ONLINE");
 
-   if(playerPosition&&!centered){
-    centerOnPlayer();
-   }
+   $("locationStatus").textContent=playerPosition?
+    "GPS připojeno":"Čekám na GPS...";
+   if(playerPosition)centerOnPlayer();
   });
 
   map.on("error",e=>{
-   console.warn("Map:",e.error||e);
+   console.warn("Map resource:",e.error||e);
   });
 
  }catch(e){
@@ -425,97 +341,49 @@ function startMap(){
  }
 }
 
-/* FUTURISTICKÉ BARVY MAPY */
-
 function customizeMap(){
  if(!map)return;
-
  const layers=map.getStyle().layers||[];
 
  layers.forEach(layer=>{
   const id=layer.id.toLowerCase();
-  const type=layer.type;
-
   try{
-   if(type==="background"){
-    map.setPaintProperty(
-     layer.id,"background-color","#182b38"
-    );
+   if(layer.type==="background"){
+    map.setPaintProperty(layer.id,"background-color","#182b38");
    }
-
-   if(type==="fill"){
+   if(layer.type==="fill"){
     if(/water|ocean|river|lake/.test(id)){
-     map.setPaintProperty(
-      layer.id,"fill-color","#16a9b9"
-     );
-     map.setPaintProperty(
-      layer.id,"fill-opacity",0.9
-     );
-    }
-    else if(/park|grass|wood|forest|landcover|landuse|vegetation/.test(id)){
-     map.setPaintProperty(
-      layer.id,"fill-color","#367f68"
-     );
-     map.setPaintProperty(
-      layer.id,"fill-opacity",0.9
-     );
-    }
-    else if(/building/.test(id)){
-     map.setPaintProperty(
-      layer.id,"fill-color","#537d91"
-     );
-     map.setPaintProperty(
-      layer.id,"fill-opacity",0.85
-     );
-    }
-    else if(/land|earth|background/.test(id)){
-     map.setPaintProperty(
-      layer.id,"fill-color","#526e66"
-     );
+     map.setPaintProperty(layer.id,"fill-color","#16a9b9");
+     map.setPaintProperty(layer.id,"fill-opacity",.9);
+    }else if(/park|grass|wood|forest|landcover|landuse|vegetation/.test(id)){
+     map.setPaintProperty(layer.id,"fill-color","#367f68");
+     map.setPaintProperty(layer.id,"fill-opacity",.9);
+    }else if(/building/.test(id)){
+     map.setPaintProperty(layer.id,"fill-color","#537d91");
+     map.setPaintProperty(layer.id,"fill-opacity",.85);
+    }else if(/land|earth/.test(id)){
+     map.setPaintProperty(layer.id,"fill-color","#526e66");
     }
    }
-
-   if(type==="line"){
+   if(layer.type==="line"){
     if(/water/.test(id)){
-     map.setPaintProperty(
-      layer.id,"line-color","#27dce9"
-     );
-     map.setPaintProperty(
-      layer.id,"line-opacity",0.9
-     );
-    }
-    else if(/road|street|transportation/.test(id)){
-     map.setPaintProperty(
-      layer.id,"line-color","#a1c8c0"
-     );
-     map.setPaintProperty(
-      layer.id,"line-opacity",0.95
-     );
+     map.setPaintProperty(layer.id,"line-color","#27dce9");
+    }else if(/road|street|transportation/.test(id)){
+     map.setPaintProperty(layer.id,"line-color","#a1c8c0");
     }
    }
-
-   if(type==="symbol"){
-    try{
-     map.setPaintProperty(
-      layer.id,"text-color","#e4ffff"
-     );
-     map.setPaintProperty(
-      layer.id,"text-halo-color","#18364b"
-     );
-     map.setPaintProperty(
-      layer.id,"text-halo-width",1.5
-     );
-    }catch(e){}
+   if(layer.type==="symbol"){
+    map.setPaintProperty(layer.id,"text-color","#e4ffff");
+    map.setPaintProperty(layer.id,"text-halo-color","#18364b");
+    map.setPaintProperty(layer.id,"text-halo-width",1.5);
    }
-
   }catch(e){
-   console.log("Vrstva přeskočena:",layer.id,e.message);
+   console.warn("Vrstva přeskočena:",layer.id);
   }
  });
 
  const building=layers.find(l=>
-  l.type==="fill"&&
-  l.id.toLowerCase().includes("building")&&
+  l.type==="fill"&&l.id.toLowerCase().includes("building")&&
   l["source-layer"]&&l.source
  );
 
@@ -529,19 +397,13 @@ function customizeMap(){
     minzoom:15,
     paint:{
      "fill-extrusion-color":"#527e91",
-     "fill-extrusion-height":[
-      "coalesce",["get","render_height"],["get","height"],8
-     ],
-     "fill-extrusion-base":[
-      "coalesce",["get","render_min_height"],0
-     ],
-     "fill-extrusion-opacity":0.78,
+     "fill-extrusion-height":["coalesce",["get","render_height"],["get","height"],8],
+     "fill-extrusion-base":["coalesce",["get","render_min_height"],0],
+     "fill-extrusion-opacity":.78,
      "fill-extrusion-vertical-gradient":true
     }
    });
-  }catch(e){
-   console.log("3D budovy nejsou dostupné:",e);
-  }
+  }catch(e){console.warn("3D budovy nejsou dostupné",e)}
  }
 }
 
@@ -549,39 +411,27 @@ function customizeMap(){
 
 function updateItemScale(){
  if(!map)return;
-
- const scale=Math.max(
-  0.35,
-  Math.min(2.5,Math.pow(2,map.getZoom()-18))
- );
-
+ const scale=Math.max(.35,Math.min(2.5,Math.pow(2,map.getZoom()-18)));
  document.querySelectorAll(".item-visual").forEach(el=>{
   el.style.transform="scale("+scale+")";
  });
 }
 
-/* HERNÍ OBJEKTY – PEVNÉ GPS POZICE */
+/* PŘEDMĚTY A JEJICH PEVNÉ SOUŘADNICE */
 
 function offsetMeters(lng,lat,east,north){
  const lat2=lat+north/111320;
  const lng2=lng+east/(111320*Math.cos(lat*Math.PI/180));
-
  return [lng2,lat2];
 }
 
 function distanceMeters(a,b){
  const R=6371000;
  const rad=x=>x*Math.PI/180;
-
  const dLat=rad(b[1]-a[1]);
  const dLng=rad(b[0]-a[0]);
-
- const h=
-  Math.sin(dLat/2)**2+
-  Math.cos(rad(a[1]))*
-  Math.cos(rad(b[1]))*
-  Math.sin(dLng/2)**2;
-
+ const h=Math.sin(dLat/2)**2+
+  Math.cos(rad(a[1]))*Math.cos(rad(b[1]))*Math.sin(dLng/2)**2;
  return 2*R*Math.asin(Math.sqrt(h));
 }
 
@@ -591,7 +441,6 @@ function addItem(position,emoji,name){
 
  const visual=document.createElement("div");
  visual.className="item-visual";
-
  visual.innerHTML=
   '<span class="item-symbol">'+emoji+'</span>'+
   '<span class="item-shadow"></span>'+
@@ -600,20 +449,13 @@ function addItem(position,emoji,name){
  el.appendChild(visual);
 
  const marker=new maplibregl.Marker({
-  element:el,
-  anchor:"bottom"
+  element:el,anchor:"bottom"
  }).setLngLat(position).addTo(map);
 
  const item={
-  marker:marker,
-  position:position,
-  name:name,
-  emoji:emoji,
-  collected:false
+  marker,position,name,emoji,collected:false
  };
-
  worldItems.push(item);
- markers.push(marker);
 
  updateItemScale();
 
@@ -623,10 +465,7 @@ function addItem(position,emoji,name){
    return;
   }
 
-  const distance=distanceMeters(
-   playerPosition,item.position
-  );
-
+  const distance=distanceMeters(playerPosition,item.position);
   if(distance>15){
    msg("PŘÍLIŠ DALEKO · "+Math.round(distance)+" m");
    return;
@@ -638,10 +477,8 @@ function addItem(position,emoji,name){
 
 function collectItem(item){
  if(item.collected)return;
-
  item.collected=true;
  item.marker.remove();
-
  msg("✦ ARTEFAKT ZÍSKÁN: "+item.name);
  addXP(10);
  saveCollectedItems();
@@ -649,26 +486,14 @@ function collectItem(item){
 
 function saveCollectedItems(){
  try{
-  const collected=worldItems
-   .filter(item=>item.collected)
-   .map(item=>item.name);
-
-  localStorage.setItem(
-   "realmGoCollectedV1",
-   JSON.stringify(collected)
-  );
- }catch(e){
-  console.warn("Uložení inventáře:",e);
- }
+  const collected=worldItems.filter(i=>i.collected).map(i=>i.name);
+  localStorage.setItem("realmGoCollectedV1",JSON.stringify(collected));
+ }catch(e){console.warn("Inventář:",e)}
 }
 
 function createWorldItems(){
- if(worldItemsCreated||!playerPosition||!map)return;
-
+ if(worldItemsCreated||!playerPosition||!mapReady)return;
  worldItemsCreated=true;
-
- const storageKey="realmGoWorldV1";
- const collectedKey="realmGoCollectedV1";
 
  const objects=[
   [28,15,"💎","Energetický krystal"],
@@ -683,69 +508,51 @@ function createWorldItems(){
  let collected=[];
 
  try{
-  savedWorld=JSON.parse(
-   localStorage.getItem(storageKey)
-  );
-
-  collected=JSON.parse(
-   localStorage.getItem(collectedKey)
-  )||[];
-
+  savedWorld=JSON.parse(localStorage.getItem("realmGoWorldV1"));
+  collected=JSON.parse(localStorage.getItem("realmGoCollectedV1"))||[];
   if(!Array.isArray(collected))collected=[];
  }catch(e){
   savedWorld=null;
   collected=[];
  }
 
- if(
-  !Array.isArray(savedWorld)||
-  savedWorld.length!==objects.length
- ){
+ if(!Array.isArray(savedWorld)||savedWorld.length!==objects.length){
   const [lng,lat]=playerPosition;
-
   savedWorld=objects.map(o=>({
    position:offsetMeters(lng,lat,o[0],o[1]),
-   emoji:o[2],
-   name:o[3]
+   emoji:o[2],name:o[3]
   }));
-
   try{
-   localStorage.setItem(
-    storageKey,JSON.stringify(savedWorld)
-   );
+   localStorage.setItem("realmGoWorldV1",JSON.stringify(savedWorld));
   }catch(e){}
  }
 
  savedWorld.forEach(item=>{
-  if(
-   !item||
-   !Array.isArray(item.position)||
-   collected.includes(item.name)
-  )return;
-
-  addItem(
-   item.position,
-   item.emoji,
-   item.name
-  );
+  if(!item||!Array.isArray(item.position)||collected.includes(item.name))return;
+  addItem(item.position,item.emoji,item.name);
  });
 
  updateItemScale();
 }
 
-/* XP */
+/* XP A INVENTÁŘ */
 
 function addXP(n){
  xp+=n;
-
  while(xp>=level*100){
   xp-=level*100;
   level++;
   msg("LEVEL UP · "+level);
  }
+ $("level").textContent="LEVEL "+String(level).padStart(2,"0")+" · "+xp+" XP";
+}
 
- $("level").textContent=
-  "LEVEL "+String(level).padStart(2,"0")+" · "+xp+" XP";
+function showInventory(){
+ let collected=[];
+ try{
+  collected=JSON.parse(localStorage.getItem("realmGoCollectedV1"))||[];
+ }catch(e){}
+ msg("ZÍSKANÉ ARTEFAKTY: "+collected.length+" / 6");
 }
 
 /* 3D AVATAR */
@@ -758,61 +565,34 @@ function createAvatar(){
 
  try{
   renderer=new THREE.WebGLRenderer({
-   canvas:$("avatarCanvas"),
-   alpha:true,
-   antialias:true
+   canvas:$("avatarCanvas"),alpha:true,antialias:true
   });
-
-  renderer.setPixelRatio(
-   Math.min(devicePixelRatio||1,2)
-  );
-
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
   renderer.setSize(innerWidth,innerHeight);
 
   scene=new THREE.Scene();
-
   camera=new THREE.OrthographicCamera(
    -innerWidth/2,innerWidth/2,
-   innerHeight/2,-innerHeight/2,
-   .1,1000
+   innerHeight/2,-innerHeight/2,.1,1000
   );
-
   camera.position.set(0,0,150);
   camera.lookAt(0,0,0);
 
-  scene.add(
-   new THREE.AmbientLight(0xffffff,1.7)
-  );
-
-  const light=new THREE.DirectionalLight(
-   0x9afff2,2.2
-  );
-
+  scene.add(new THREE.AmbientLight(0xffffff,1.7));
+  const light=new THREE.DirectionalLight(0x9afff2,2.2);
   light.position.set(-40,80,100);
   scene.add(light);
-
-  const neon=new THREE.PointLight(
-   0x24eaff,1.5,200
-  );
-
-  neon.position.set(0,30,40);
-  scene.add(neon);
 
   avatar=new THREE.Group();
   scene.add(avatar);
 
-  const material=(
-   color,metalness=0,roughness=.5,emissive=0x000000
-  )=>new THREE.MeshStandardMaterial({
-   color,
-   metalness,
-   roughness,
-   emissive,
-   emissiveIntensity:.5
-  });
+  const material=(color,metalness=0,roughness=.5,emissive=0x000000)=>
+   new THREE.MeshStandardMaterial({
+    color,metalness,roughness,emissive,emissiveIntensity:.5
+   });
 
   const armor=material(0x245a69,.75,.3,0x092b39);
-  const armorDark=material(0x142e49,.7,.3,0x071d38);
+  const dark=material(0x142e49,.7,.3,0x071d38);
   const skin=material(0xc4d9df,.15,.55,0x162e40);
   const metal=material(0x72dfe6,.85,.25,0x1c8293);
   const gold=material(0xe8cc72,.75,.3,0x62420a);
@@ -825,171 +605,104 @@ function createAvatar(){
    return o;
   }
 
-  /* Světelný kruh */
-
-  const ring=part(
-   new THREE.TorusGeometry(19,1.1,8,48),
-   metal,avatar,0,2,-8
-  );
-
+  const ring=part(new THREE.TorusGeometry(19,1.1,8,48),metal,avatar,0,2,-8);
   const shadow=part(
    new THREE.CircleGeometry(17,32),
-   new THREE.MeshBasicMaterial({
-    color:0x102a48,
-    transparent:true,
-    opacity:.5
-   }),
+   new THREE.MeshBasicMaterial({color:0x102a48,transparent:true,opacity:.5}),
    avatar,0,1,-9
   );
-
   shadow.scale.set(1.5,.4,1);
 
-  /* Batoh */
+  part(new THREE.BoxGeometry(17,23,10),dark,avatar,0,55,-9);
+  part(new THREE.BoxGeometry(4,17,3),metal,avatar,-7,55,-15);
+  part(new THREE.BoxGeometry(4,17,3),metal,avatar,7,55,-15);
 
-  part(
-   new THREE.BoxGeometry(17,23,10),
-   armorDark,avatar,0,55,-9
-  );
-
-  part(
-   new THREE.BoxGeometry(4,17,3),
-   metal,avatar,-7,55,-15
-  );
-
-  part(
-   new THREE.BoxGeometry(4,17,3),
-   metal,avatar,7,55,-15
-  );
-
-  /* Tělo */
-
-  part(
-   new THREE.CapsuleGeometry(10,20,5,12),
-   armor,avatar,0,49,3
-  );
-
+  part(new THREE.CapsuleGeometry(10,20,5,12),armor,avatar,0,49,3);
   const core=part(
    new THREE.OctahedronGeometry(5),
-   material(0x7efff3,.5,.2,0x18d9e7),
-   avatar,0,53,14
+   material(0x7efff3,.5,.2,0x18d9e7),avatar,0,53,14
   );
 
-  /* Hlava */
+  part(new THREE.SphereGeometry(10,24,20),skin,avatar,0,78,5);
+  part(new THREE.SphereGeometry(12,24,18),dark,avatar,0,82,1);
+  part(new THREE.BoxGeometry(14,3,2),metal,avatar,0,78,13);
+  part(new THREE.CylinderGeometry(1,1,10,8),metal,avatar,-8,92,0);
+  part(new THREE.SphereGeometry(2,8,8),gold,avatar,-8,98,0);
 
-  part(
-   new THREE.SphereGeometry(10,24,20),
-   skin,avatar,0,78,5
-  );
-
-  part(
-   new THREE.SphereGeometry(12,24,18),
-   armorDark,avatar,0,82,1
-  );
-
-  part(
-   new THREE.BoxGeometry(14,3,2),
-   metal,avatar,0,78,13
-  );
-
-  part(
-   new THREE.CylinderGeometry(1,1,10,8),
-   metal,avatar,-8,92,0
-  );
-
-  part(
-   new THREE.SphereGeometry(2,8,8),
-   gold,avatar,-8,98,0
-  );
-
-  /* Ramena */
-
-  part(
-   new THREE.SphereGeometry(7,16,16),
-   armor,avatar,-13,57,3
-  );
-
-  part(
-   new THREE.SphereGeometry(7,16,16),
-   armor,avatar,13,57,3
-  );
-
-  /* Paže */
+  part(new THREE.SphereGeometry(7,16,16),armor,avatar,-13,57,3);
+  part(new THREE.SphereGeometry(7,16,16),armor,avatar,13,57,3);
 
   const leftArm=new THREE.Group();
   leftArm.position.set(-14,54,4);
   avatar.add(leftArm);
-
-  part(
-   new THREE.CapsuleGeometry(4,15,4,8),
-   armor,leftArm,0,-10,0
-  );
-
-  part(
-   new THREE.SphereGeometry(4,12,12),
-   metal,leftArm,0,-19,0
-  );
+  part(new THREE.CapsuleGeometry(4,15,4,8),armor,leftArm,0,-10,0);
+  part(new THREE.SphereGeometry(4,12,12),metal,leftArm,0,-19,0);
 
   const rightArm=new THREE.Group();
   rightArm.position.set(14,54,4);
   avatar.add(rightArm);
-
-  part(
-   new THREE.CapsuleGeometry(4,15,4,8),
-   armor,rightArm,0,-10,0
-  );
-
-  part(
-   new THREE.SphereGeometry(4,12,12),
-   metal,rightArm,0,-19,0
-  );
-
-  /* Nohy */
+  part(new THREE.CapsuleGeometry(4,15,4,8),armor,rightArm,0,-10,0);
+  part(new THREE.SphereGeometry(4,12,12),metal,rightArm,0,-19,0);
 
   const leftLeg=new THREE.Group();
   leftLeg.position.set(-6,31,4);
   avatar.add(leftLeg);
-
-  part(
-   new THREE.CapsuleGeometry(4,13,4,8),
-   armorDark,leftLeg,0,-9,0
-  );
-
-  part(
-   new THREE.BoxGeometry(10,7,15),
-   boots,leftLeg,0,-20,4
-  );
-
-  part(
-   new THREE.BoxGeometry(7,2,2),
-   metal,leftLeg,0,-19,12
-  );
+  part(new THREE.CapsuleGeometry(4,13,4,8),dark,leftLeg,0,-9,0);
+  part(new THREE.BoxGeometry(10,7,15),boots,leftLeg,0,-20,4);
+  part(new THREE.BoxGeometry(7,2,2),metal,leftLeg,0,-19,12);
 
   const rightLeg=new THREE.Group();
   rightLeg.position.set(6,31,4);
   avatar.add(rightLeg);
+  part(new THREE.CapsuleGeometry(4,13,4,8),dark,rightLeg,0,-9,0);
+  part(new THREE.BoxGeometry(10,7,15),boots,rightLeg,0,-20,4);
+  part(new THREE.BoxGeometry(7,2,2),metal,rightLeg,0,-19,12);
 
-  part(
-   new THREE.CapsuleGeometry(4,13,4,8),
-   armorDark,rightLeg,0,-9,0
-  );
-
-  part(
-   new THREE.BoxGeometry(10,7,15),
-   boots,rightLeg,0,-20,4
-  );
-
-  part(
-   new THREE.BoxGeometry(7,2,2),
-   metal,rightLeg,0,-19,12
-  );
-
-  parts={
-   leftArm,rightArm,leftLeg,rightLeg,ring,core
-  };
-
+  parts={leftArm,rightArm,leftLeg,rightLeg,ring,core};
  }catch(e){
   console.error("Avatar:",e);
   avatar=null;
+ }
+}
+
+function updateAvatarPosition(){
+ if(!map||!avatar||!playerPosition)return;
+
+ const p=map.project(playerPosition);
+ const baseX=p.x-innerWidth/2;
+ const baseY=innerHeight/2-p.y;
+ const t=performance.now()*.008;
+ const bob=Math.sin(t*1.5)*.8;
+
+ avatar.position.set(baseX,baseY+bob,0);
+
+ const zoomScale=Math.pow(2,map.getZoom()-18);
+ const scale=Math.max(.35,Math.min(2.5,zoomScale));
+ avatar.scale.setScalar(scale);
+}
+
+function animate(){
+ requestAnimationFrame(animate);
+
+ if(avatar){
+  const t=performance.now()*.006;
+  const walk=playerPosition&&lastPosition&&
+   distanceMeters(playerPosition,lastPosition)>.8;
+
+  const swing=walk?Math.sin(t*2.5)*.45:Math.sin(t*.7)*.04;
+
+  if(parts.leftArm)parts.leftArm.rotation.x=swing;
+  if(parts.rightArm)parts.rightArm.rotation.x=-swing;
+  if(parts.leftLeg)parts.leftLeg.rotation.x=-swing;
+  if(parts.rightLeg)parts.rightLeg.rotation.x=swing;
+  if(parts.ring)parts.ring.rotation.z=t*.25;
+  if(parts.core)parts.core.rotation.y=t*.8;
+
+  updateAvatarPosition();
+ }
+
+ if(renderer&&scene&&camera){
+  renderer.render(scene,camera);
  }
 }
 
@@ -998,11 +711,4 @@ function createAvatar(){
 function startGPS(){
  if(!navigator.geolocation){
   $("locationStatus").textContent="GPS není podporována";
-  return;
- }
-
- if(gpsWatch!==null)return;
-
- $("locationStatus").textContent="Vyhledávám signál GPS...";
-
- gp
+  retur
