@@ -3,131 +3,141 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>REALM GO – True 3D Avatar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#142c25">
+<title>REALM GO 0.6</title>
 
-<link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#a9c99a;color:#fff;font-family:Arial,sans-serif}
+html,body{
+  margin:0;width:100%;height:100%;
+  overflow:hidden;background:#b8d9b2;
+  font-family:Arial,sans-serif;
+}
 #map{position:absolute;inset:0}
-#avatarCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
-.maplibregl-ctrl-attrib{font-size:9px!important;opacity:.65}
-.maplibregl-ctrl-group{background:#153b2d!important;border:1px solid #8cd5a5!important}
-.maplibregl-ctrl-group button{filter:invert(1)}
-
-.topbar{
- position:absolute;z-index:6;top:0;left:0;right:0;
- padding:18px 16px 30px;
- background:linear-gradient(#102d20eF,transparent);
- display:flex;justify-content:space-between;align-items:flex-start
+#avatarCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:5;
 }
+#loading{
+  position:absolute;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+  color:white;text-align:center;
+  background:radial-gradient(circle at 50% 35%,#315b48,#10241f 75%);
+  transition:opacity .6s;
+}
+#loading.hidden{opacity:0;pointer-events:none}
 .logo{
- font-size:23px;font-weight:900;letter-spacing:4px;
- color:#d6ffe4;text-shadow:0 0 12px #25d87d,0 0 30px #087b42
+  font-size:38px;font-weight:900;letter-spacing:5px;
+  text-shadow:0 0 20px #7dffba;
 }
-.logo small{display:block;font-size:9px;letter-spacing:3px;color:#e0f7df;margin-top:4px}
-.level{
- border:1px solid #9cf3b5;background:#153d2dcc;
- border-radius:12px;padding:8px 12px;font-size:11px
+.logo span{color:#9cffbb}
+.loading-sub{font-size:11px;letter-spacing:4px;margin-top:9px;color:#b7e8c8}
+.loader{
+  width:46px;height:46px;border:3px solid #ffffff30;
+  border-top-color:#a8ffb8;border-radius:50%;
+  animation:spin 1s linear infinite;margin-top:35px;
 }
-.level strong{color:#9effba;font-size:17px}
-
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadingText{font-size:12px;color:#c7e9d0;margin-top:15px}
+#topbar{
+  position:absolute;z-index:20;top:env(safe-area-inset-top,10px);
+  left:12px;right:12px;
+  display:flex;justify-content:space-between;align-items:center;
+  pointer-events:none;
+}
 .panel{
- position:absolute;z-index:6;left:14px;right:14px;bottom:18px;
- border:1px solid #8bd7a3;border-radius:19px;
- background:linear-gradient(145deg,#153d2eef,#0a2119f5);
- box-shadow:0 8px 35px #153d2d55;padding:14px
+  color:white;
+  background:linear-gradient(135deg,#173b30ed,#10251feb);
+  border:1px solid #a5f5c55c;
+  border-radius:15px;padding:10px 13px;
+  box-shadow:0 5px 20px #10251f40;
+  backdrop-filter:blur(12px);
 }
-.status{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#c5e8d0;margin-bottom:12px}
-.status span:last-child{color:#9effba}
-.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#playerInfo{font-size:12px;line-height:1.6}
+#playerInfo strong{font-size:15px;color:#a9ffc0}
+#level{font-size:11px;color:#d5eadb}
+#compass{font-size:22px}
+#bottom{
+  position:absolute;z-index:20;bottom:calc(15px + env(safe-area-inset-bottom));
+  left:12px;right:12px;
+  display:flex;justify-content:space-between;align-items:end;
+  pointer-events:none;
+}
+#bottom .panel{pointer-events:auto}
+#locationStatus{font-size:11px;color:#ccebd6;max-width:190px}
+.actions{display:flex;gap:9px}
 .action{
- border:1px solid #76b98b;
- background:linear-gradient(145deg,#286744,#153b29);
- border-radius:12px;color:#eaffef;padding:12px 3px;
- font-size:10px;min-height:62px
+  width:49px;height:49px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:white;
+  background:linear-gradient(145deg,#285943,#102b23);
+  border:1px solid #a5f5c5a0;
+  box-shadow:0 4px 14px #0004;
+  cursor:pointer;
 }
-.action b{display:block;font-size:21px;margin-bottom:5px}
-.action:active{transform:scale(.96)}
-.message{font-size:12px;color:#d4efda;margin-top:11px;min-height:17px}
-
-.gps{
- position:absolute;z-index:6;right:15px;bottom:210px;
- border:1px solid #a5e9b6;background:#153d2deF;color:#eaffef;
- border-radius:50%;width:52px;height:52px;font-size:23px;
- box-shadow:0 0 20px #38b76a55
+.action:active{transform:scale(.93)}
+#gpsButton{
+  position:absolute;z-index:25;right:14px;top:90px;
+  width:44px;height:44px;border-radius:14px;
+  border:1px solid #ffffff70;background:#173b30e8;
+  color:white;font-size:21px;
 }
-.toast{
- position:absolute;z-index:8;top:115px;left:50%;transform:translateX(-50%);
- background:#153d2df2;border:1px solid #9ce7b0;border-radius:20px;
- padding:10px 16px;font-size:11px;white-space:nowrap;display:none
+#zoomControls{
+  position:absolute;z-index:25;right:14px;top:145px;
+  display:flex;flex-direction:column;gap:6px;
 }
-.compass{position:absolute;z-index:6;right:22px;top:90px;color:#f1fff0;font-size:12px;text-shadow:0 1px 5px #153d2d}
-
-.world-item{
- position:relative;display:block;
- pointer-events:auto
+.zoom{
+  width:42px;height:42px;border-radius:12px;
+  border:1px solid #ffffff70;background:#173b30e8;
+  color:white;font-size:23px;
 }
-.item-shadow{
- position:absolute;bottom:0;left:50%;
- width:34px;height:9px;margin-left:-17px;
- border-radius:50%;background:rgba(0,0,0,.55);
- filter:blur(3px)
+.item-marker{
+  width:46px;height:54px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  font-size:29px;
+  filter:drop-shadow(0 5px 3px #263c2c88);
+  transform-origin:bottom center;
 }
-.crystal{width:44px;height:60px}
-.crystal-shape{
- position:absolute;bottom:7px;left:10px;width:25px;height:45px;
- background:linear-gradient(110deg,#c5fff0,#23dca3 35%,#087e88 70%,#caffef);
- clip-path:polygon(50% 0,100% 32%,76% 100%,24% 100%,0 32%);
- filter:drop-shadow(0 0 5px #36d9b0)
+.item-marker .item-shadow{
+  position:absolute;bottom:0;left:9px;width:28px;height:7px;
+  border-radius:50%;background:#263c2c66;
+  z-index:-1;
 }
-.crystal-shine{
- position:absolute;bottom:15px;left:18px;width:5px;height:29px;
- background:#fff;opacity:.8;
- clip-path:polygon(50% 0,100% 100%,0 100%)
+.item-marker .item-symbol{
+  position:relative;z-index:1;
+  text-shadow:0 2px 3px #263c2c;
 }
-.portal-object{width:62px;height:82px}
-.portal-ring{
- position:absolute;bottom:9px;left:12px;width:38px;height:65px;
- border:4px solid #83ffe1;border-radius:50%;
- box-shadow:0 0 10px #00b9d9,inset 0 0 12px #00d9ff,0 0 24px #00a9c7;
- background:radial-gradient(ellipse,#b7fff822,#00b9ff18,transparent)
+#message{
+  position:absolute;z-index:30;top:85px;left:50%;
+  transform:translateX(-50%);
+  padding:10px 15px;border-radius:12px;
+  background:#173b30ed;color:white;font-size:12px;
+  border:1px solid #a5f5c5;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+  max-width:85%;text-align:center;
 }
-.portal-base{
- position:absolute;bottom:2px;left:7px;width:48px;height:10px;
- border-radius:50%;background:radial-gradient(ellipse,#83ffe1,#087e70 60%,#031a19);
- box-shadow:0 0 12px #00c9d9
+#message.show{opacity:1}
+#debug{
+  display:none;position:absolute;z-index:200;
+  left:10px;right:10px;top:50%;
+  transform:translateY(-50%);
+  padding:16px;border-radius:12px;
+  background:#2c1515ed;color:white;
+  font-size:12px;line-height:1.5;
+  overflow-wrap:anywhere;
 }
-.wood-item{width:45px;height:53px}
-.wood-shape{
- position:absolute;bottom:8px;left:8px;width:30px;height:33px;
- background:linear-gradient(90deg,#4c2b19,#a66a36,#59351e);
- border:2px solid #c08b4e;border-radius:5px 5px 3px 3px
+#debug button{
+  margin-top:12px;padding:9px 14px;
+  background:#a9ffc0;border:0;border-radius:8px;
 }
-.wood-shape:after{
- content:"✦";position:absolute;top:5px;left:8px;color:#ffe0a0;font-size:13px
-}
-
-#intro{
- position:absolute;z-index:10;inset:0;
- background:radial-gradient(ellipse at center,#347c4b,#102c20 75%);
- display:flex;align-items:center;justify-content:center;
- text-align:center;padding:30px
-}
-.introBox{max-width:350px}
-.introLogo{
- font-size:35px;font-weight:900;letter-spacing:5px;
- color:#d4ffe0;text-shadow:0 0 25px #43ff9a
-}
-.introBox p{color:#e0f5e3;line-height:1.6;font-size:13px}
-.start{
- background:linear-gradient(90deg,#16854b,#4cc878);
- border:1px solid #b6ffca;border-radius:12px;
- color:white;font-weight:bold;padding:15px 25px;
- font-size:13px;letter-spacing:2px;margin-top:12px
+#crosshair{
+  position:absolute;z-index:4;left:50%;top:50%;
+  width:5px;height:5px;border-radius:50%;
+  background:#ffffff80;pointer-events:none;
 }
 </style>
 </head>
@@ -136,607 +146,621 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#a9c99a;col
 
 <div id="map"></div>
 <canvas id="avatarCanvas"></canvas>
+<div id="crosshair"></div>
 
-<div class="topbar">
- <div class="logo">REALM GO<small>TRUE 3D AVATAR · 0.5</small></div>
- <div class="level">ÚROVEŇ<br><strong>01</strong></div>
+<div id="loading">
+  <div class="logo">REALM <span>GO</span></div>
+  <div class="loading-sub">EXPLORE THE LIVING WORLD</div>
+  <div class="loader"></div>
+  <div id="loadingText">Připravuji herní svět...</div>
 </div>
 
-<div class="compass">✦ SVĚT REALMŮ</div>
-<button class="gps" onclick="locatePlayer()">◎</button>
-
-<div class="panel">
- <div class="status">
-  <span id="locationStatus">SVĚT SE PROBOUZÍ</span>
-  <span id="gpsStatus">GPS: VYPNUTO</span>
- </div>
- <div class="actions">
-  <button class="action" onclick="scanWorld()"><b>⌖</b>SKENOVAT</button>
-  <button class="action" onclick="showCreatures()"><b>✧</b>BYTOSTI</button>
-  <button class="action" onclick="showPortals()"><b>◉</b>PORTÁLY</button>
-  <button class="action" onclick="changeView()"><b>◇</b>POHLED</button>
- </div>
- <div class="message" id="message">Vstup do světa REALM GO.</div>
+<div id="topbar">
+  <div class="panel" id="playerInfo">
+    <strong>CESTOVATEL</strong><br>
+    <span id="level">ÚROVEŇ 1 · 0 XP</span>
+  </div>
+  <div class="panel" id="compass">🧭</div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<div id="intro">
- <div class="introBox">
-  <div class="introLogo">REALM GO</div>
-  <p>Tvůj příběh začíná ve skutečném světě.<br>Vstup do nové říše.</p>
-  <p>Povol přístup k poloze zařízení.</p>
-  <button class="start" onclick="startGame()">VSTOUPIT DO SVĚTA</button>
- </div>
+<button id="gpsButton" title="Moje poloha">◎</button>
+<div id="zoomControls">
+  <button class="zoom" id="zoomIn">+</button>
+  <button class="zoom" id="zoomOut">−</button>
 </div>
 
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js';
+<div id="message"></div>
 
-const START_CENTER=[14.7,49.4];
+<div id="bottom">
+  <div class="panel">
+    <div id="locationStatus">Čekám na GPS...</div>
+  </div>
+  <div class="actions">
+    <button class="action" id="inventoryButton">🎒</button>
+    <button class="action" id="worldButton">🌍</button>
+  </div>
+</div>
 
-const map=new maplibregl.Map({
- container:'map',
- style:'https://tiles.openfreemap.org/styles/bright',
- center:START_CENTER,
- zoom:15,
- pitch:58,
- bearing:-18,
- maxPitch:75,
- antialias:true
+<div id="debug">
+  <strong>REALM GO – diagnostika</strong>
+  <div id="debugText"></div>
+  <button onclick="location.reload()">Zkusit znovu</button>
+</div>
+
+<!-- Knihovny se načítají jako klasické skripty, ne jako ES moduly -->
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+
+<script>
+(function(){
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let map = null;
+let renderer = null;
+let scene = null;
+let camera = null;
+let avatar = null;
+let avatarParts = {};
+let playerPosition = null;
+let lastPosition = null;
+let heading = 0;
+let walkAmount = 0;
+let isWalking = false;
+let mapReady = false;
+let avatarReady = false;
+let xp = 0;
+let level = 1;
+let markers = [];
+
+const initialCenter = [14.7,49.3];
+
+function showMessage(text){
+  const el=$("message");
+  el.textContent=text;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),2600);
+}
+
+function hideLoading(text){
+  $("loadingText").textContent=text || "Svět je připraven!";
+  $("loading").classList.add("hidden");
+  setTimeout(()=>$("loading").style.display="none",700);
+}
+
+function showError(text){
+  $("debugText").textContent=text;
+  $("debug").style.display="block";
+  hideLoading("Hra pokračuje v omezeném režimu");
+}
+
+window.addEventListener("error",e=>{
+  console.error(e);
+  if(!mapReady && !map){
+    showError("Chyba při spuštění: "+(e.message||"Neznámá chyba"));
+  }
 });
 
-map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-left');
-map.addControl(new maplibregl.AttributionControl({compact:true}));
-
-let playerPosition=null;
-let gpsWatch=null;
-let itemMarkers=[];
-let objectsCreated=false;
-let gameStarted=false;
-let threeD=true;
-let lastPosition=null;
-let moving=false;
-let lastMoveTime=0;
-let targetHeading=0;
-
-/* THREE.JS SCÉNA */
-
-const canvas=document.getElementById('avatarCanvas');
-
-const renderer=new THREE.WebGLRenderer({
- canvas:canvas,
- alpha:true,
- antialias:true
+window.addEventListener("unhandledrejection",e=>{
+  console.error(e.reason);
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-renderer.setSize(window.innerWidth,window.innerHeight,false);
-renderer.setClearColor(0x000000,0);
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 
-const scene=new THREE.Scene();
-
-const camera=new THREE.OrthographicCamera(
- -window.innerWidth/2,
- window.innerWidth/2,
- window.innerHeight/2,
- -window.innerHeight/2,
- 0.1,1000
-);
-camera.position.set(0,0,300);
-camera.lookAt(0,0,0);
-
-scene.add(new THREE.HemisphereLight(0xdfffe8,0x263a25,2.0));
-
-const sun=new THREE.DirectionalLight(0xffedca,2.5);
-sun.position.set(-80,120,150);
-scene.add(sun);
-
-const fill=new THREE.DirectionalLight(0x7edbff,1.2);
-fill.position.set(90,50,100);
-scene.add(fill);
-
-/* POMOCNÉ FUNKCE PRO MODELOVÁNÍ */
-
-function material(color,roughness=0.75,metalness=0){
- return new THREE.MeshStandardMaterial({
-  color:color,roughness:roughness,metalness:metalness
- });
+function updateXP(amount){
+  xp+=amount;
+  const next=level*100;
+  while(xp>=next){
+    xp-=next;
+    level++;
+    showMessage("✨ Nová úroveň: "+level);
+  }
+  $("level").textContent="ÚROVEŇ "+level+" · "+xp+" XP";
 }
-
-const green=material(0x145d3b);
-const greenLight=material(0x278b55);
-const darkGreen=material(0x093a29);
-const leather=material(0x754525);
-const leatherLight=material(0xb77a42);
-const skin=material(0xe8b78b);
-const skinDark=material(0x9d6547);
-const cloth=material(0x4c3929);
-const gold=material(0xd7ae53,0.35,0.5);
-const steel=material(0x9bb8bd,0.3,0.7);
-const eyeMat=material(0x25231d,0.3);
-const white=material(0xffffff,0.2);
-
-function mesh(geometry,mat,parent,x=0,y=0,z=0){
- const m=new THREE.Mesh(geometry,mat);
- m.position.set(x,y,z);
- m.castShadow=true;
- m.receiveShadow=true;
- parent.add(m);
- return m;
-}
-
-function sphere(parent,mat,x,y,z,sx,sy,sz){
- const m=mesh(new THREE.SphereGeometry(1,24,18),mat,parent,x,y,z);
- m.scale.set(sx,sy,sz);
- return m;
-}
-
-function cylinder(parent,mat,x,y,z,rTop,rBottom,height){
- const m=mesh(new THREE.CylinderGeometry(rTop,rBottom,height,12),mat,parent,x,y,z);
- return m;
-}
-
-function limb(parent,mat,x,y,z,length,radius){
- const pivot=new THREE.Group();
- pivot.position.set(x,y,z);
- parent.add(pivot);
- const body=mesh(new THREE.CapsuleGeometry(radius,length,4,8),mat,pivot,0,-length/2,0);
- return pivot;
-}
-
-/* SKUTEČNÝ PROSTOROVÝ AVATAR */
-
-const avatar=new THREE.Group();
-scene.add(avatar);
-
-/* Stín pod postavou */
-const shadow=mesh(
- new THREE.CircleGeometry(19,32),
- new THREE.MeshBasicMaterial({color:0x07130b,transparent:true,opacity:0.42}),
- avatar,0,2,-2
-);
-shadow.scale.set(1.1,0.35,1);
-
-/* Plášť */
-const cape=mesh(
- new THREE.ConeGeometry(21,47,10,1,false),
- green,avatar,0,31,-1
-);
-cape.rotation.x=Math.PI;
-
-/* Spodní okraj pláště */
-const capeBottom=mesh(
- new THREE.CylinderGeometry(19,21,4,12),
- darkGreen,avatar,0,11,-1
-);
-
-/* Tělo */
-const torso=mesh(
- new THREE.CapsuleGeometry(10,22,5,12),
- leather,avatar,0,39,5
-);
-torso.scale.set(1,1.05,0.75);
-
-/* Tunika */
-const tunic=mesh(
- new THREE.CylinderGeometry(8,13,23,12),
- greenLight,avatar,0,31,7
-);
-
-/* Pás */
-mesh(new THREE.CylinderGeometry(10,10,3,12),gold,avatar,0,29,9);
-
-/* Přezka */
-mesh(new THREE.BoxGeometry(5,5,2),gold,avatar,0,29,11);
-
-/* Batoh */
-const backpack=mesh(
- new THREE.BoxGeometry(17,21,11),
- leather,avatar,-13,39,-4
-);
-backpack.rotation.z=-0.08;
-mesh(new THREE.BoxGeometry(13,5,12),leatherLight,avatar,-13,29,-4);
-mesh(new THREE.SphereGeometry(3,12,12),gold,avatar,-13,41,-11);
-
-/* Ramena */
-sphere(avatar,leatherLight,-11,48,5,7,7,7);
-sphere(avatar,leatherLight,11,48,5,7,7,7);
-
-/* Ruce – kloubové části */
-const leftArm=limb(avatar,green, -15,45,5,19,4.5);
-const rightArm=limb(avatar,green,15,45,5,19,4.5);
-
-sphere(leftArm,skin,0,-21,0,4,4,4);
-sphere(rightArm,skin,0,-21,0,4,4,4);
-
-/* Rukavice */
-sphere(leftArm,leatherLight,0,-22,0,4.5,3.5,4.5);
-sphere(rightArm,leatherLight,0,-22,0,4.5,3.5,4.5);
-
-/* Krk */
-cylinder(avatar,skin,0,54,5,4,4,7);
-
-/* Hlava */
-sphere(avatar,skin,0,66,6,10,12,9);
-
-/* Uši */
-sphere(avatar,skinDark,-10,66,5,2.5,4,2);
-sphere(avatar,skinDark,10,66,5,2.5,4,2);
-
-/* Vlasy */
-sphere(avatar,cloth,0,76,5,10.5,5,9);
-
-/* Kapuce – prostorový prstenec a horní část */
-const hood=mesh(
- new THREE.SphereGeometry(12,20,16,0,Math.PI*2,0,Math.PI*0.75),
- darkGreen,avatar,0,68,-1
-);
-hood.scale.set(1.05,1.05,0.85);
-
-/* Obličej – oči a obočí */
-sphere(avatar,eyeMat,-3.8,67,14,1.1,1.4,0.8);
-sphere(avatar,eyeMat,3.8,67,14,1.1,1.4,0.8);
-sphere(avatar,white,-4,67.5,14.6,0.35,0.4,0.25);
-sphere(avatar,white,3.6,67.5,14.6,0.35,0.4,0.25);
-
-/* Nos */
-sphere(avatar,skinDark,0,64,15,1.5,2,1.5);
-
-/* Znak na hrudi */
-const emblem=mesh(
- new THREE.OctahedronGeometry(3),
- gold,avatar,0,41,14
-);
-
-/* Nohy – pohyblivé klouby */
-const leftLeg=limb(avatar,cloth,-6,18,5,17,4.5);
-const rightLeg=limb(avatar,cloth,6,18,5,17,4.5);
-
-/* Boty */
-const leftBoot=mesh(
- new THREE.BoxGeometry(10,6,14),
- leather,avatar,-6,4,10
-);
-const rightBoot=mesh(
- new THREE.BoxGeometry(10,6,14),
- leather,avatar,6,4,10
-);
-
-/* Přezky na botách */
-mesh(new THREE.BoxGeometry(4,2,1),gold,avatar,-6,6,17);
-mesh(new THREE.BoxGeometry(4,2,1),gold,avatar,6,6,17);
-
-/* Meč na zádech */
-const sword=new THREE.Group();
-sword.position.set(16,37,-8);
-sword.rotation.z=-0.3;
-avatar.add(sword);
-mesh(new THREE.BoxGeometry(4,36,2),steel,sword,0,14,0);
-mesh(new THREE.ConeGeometry(3,8,4),steel,sword,0,36,0);
-mesh(new THREE.BoxGeometry(13,3,4),gold,sword,0,-5,1);
-mesh(new THREE.CylinderGeometry(2,2,10,8),leather,sword,0,-11,0);
-
-/* ANIMACE */
-
-const clock=new THREE.Clock();
-let animationFrame=0;
-
-function animate(){
- requestAnimationFrame(animate);
- const t=clock.getElapsedTime();
-
- if(moving){
-  const walk=Math.sin(t*10);
-  leftLeg.rotation.x=walk*0.48;
-  rightLeg.rotation.x=-walk*0.48;
-  leftArm.rotation.x=-walk*0.35;
-  rightArm.rotation.x=walk*0.35;
-  avatar.position.y=2+Math.abs(Math.sin(t*10))*2;
- }else{
-  leftLeg.rotation.x*=0.88;
-  rightLeg.rotation.x*=0.88;
-  leftArm.rotation.x*=0.88;
-  rightArm.rotation.x*=0.88;
-  avatar.position.y=1.2+Math.sin(t*2)*0.8;
- }
-
- cape.rotation.z=Math.sin(t*2.2)*0.035;
- avatar.rotation.y=THREE.MathUtils.lerp(
-  avatar.rotation.y,targetHeading,0.06
- );
-
- emblem.rotation.y=t*0.8;
- emblem.rotation.x=Math.sin(t)*0.2;
-
- if(playerPosition){
-  const p=map.project(playerPosition);
-  const w=window.innerWidth;
-  const h=window.innerHeight;
-
-  avatar.position.x=p.x-w/2;
-  avatar.position.y=h/2-p.y;
-  avatar.visible=p.x>-150&&p.x<w+150&&p.y>-150&&p.y<h+150;
- }
-
- renderer.render(scene,camera);
-}
-animate();
-
-function resize(){
- const w=window.innerWidth;
- const h=window.innerHeight;
- renderer.setSize(w,h,false);
- camera.left=-w/2;
- camera.right=w/2;
- camera.top=h/2;
- camera.bottom=-h/2;
- camera.updateProjectionMatrix();
-}
-window.addEventListener('resize',resize);
 
 /* MAPA */
 
-map.on('load',()=>{
- try{
-  map.setFog({
-   color:'#c5e4cf',
-   'high-color':'#8ac9a0',
-   'space-color':'#9bc8df',
-   'horizon-blend':0.18,
-   'star-intensity':0
-  });
- }catch(e){}
+function startMap(){
 
- try{
-  map.addSource('realm-dem',{
-   type:'raster-dem',
-   tiles:['https://demotiles.maplibre.org/terrain-tiles/{z}/{x}/{y}.png'],
-   tileSize:256,
-   encoding:'terrarium',
-   maxzoom:12
-  });
-  map.setTerrain({source:'realm-dem',exaggeration:1.2});
- }catch(e){console.log('Terén není dostupný',e);}
-
- try{
-  const layers=map.getStyle().layers;
-  const firstSymbol=layers.find(l=>l.type==='symbol');
-  map.addLayer({
-   id:'realm-3d-buildings',
-   source:'openmaptiles',
-   'source-layer':'building',
-   type:'fill-extrusion',
-   minzoom:14,
-   paint:{
-    'fill-extrusion-color':[
-     'interpolate',['linear'],['coalesce',['get','render_height'],8],
-     0,'#a8b98c',
-     15,'#c5aa7a',
-     40,'#9a987a',
-     80,'#e0c99b'
-    ],
-    'fill-extrusion-height':['coalesce',['get','render_height'],6],
-    'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-    'fill-extrusion-opacity':0.92,
-    'fill-extrusion-vertical-gradient':true
-   }
-  },firstSymbol?firstSymbol.id:undefined);
- }catch(e){console.log('3D budovy nejsou dostupné',e);}
-
- document.getElementById('locationStatus').textContent='SVĚT JE PŘIPRAVEN';
-});
-
-/* GPS A POHYB */
-
-function say(text){
- document.getElementById('message').textContent=text;
-}
-function toast(text){
- const el=document.getElementById('toast');
- el.textContent=text;
- el.style.display='block';
- clearTimeout(el._timer);
- el._timer=setTimeout(()=>el.style.display='none',2500);
-}
-
-function distanceMeters(a,b){
- const R=6371000;
- const rad=v=>v*Math.PI/180;
- const dLat=rad(b[1]-a[1]);
- const dLon=rad(b[0]-a[0]);
- const x=Math.sin(dLat/2)**2+
- Math.cos(rad(a[1]))*Math.cos(rad(b[1]))*
- Math.sin(dLon/2)**2;
- return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-}
-
-function bearingBetween(a,b){
- const rad=v=>v*Math.PI/180;
- const y=Math.sin(rad(b[0]-a[0]))*Math.cos(rad(b[1]));
- const x=Math.cos(rad(a[1]))*Math.sin(rad(b[1]))-
- Math.sin(rad(a[1]))*Math.cos(rad(b[1]))*
- Math.cos(rad(b[0]-a[0]));
- return Math.atan2(y,x);
-}
-
-function locatePlayer(){
- if(!navigator.geolocation){
-  say('Tento prohlížeč nepodporuje GPS.');
-  return;
- }
- say('Zjišťuji tvoji polohu…');
-
- navigator.geolocation.getCurrentPosition(
-  p=>{
-   const pos=[p.coords.longitude,p.coords.latitude];
-   playerPosition=pos;
-   lastPosition=pos;
-
-   map.flyTo({center:pos,zoom:17,pitch:62,speed:1.1});
-
-   document.getElementById('gpsStatus').textContent='GPS: AKTIVNÍ';
-   document.getElementById('locationStatus').textContent='POLOHA NAČTENA';
-   say('Tvůj 3D poutník vstoupil do světa REALM GO.');
-
-   if(!objectsCreated){
-    createWorldObjects();
-    objectsCreated=true;
-   }
-
-   if(!gpsWatch){
-    gpsWatch=navigator.geolocation.watchPosition(
-     updateGPS,
-     ()=>{},
-     {enableHighAccuracy:true,maximumAge:2000,timeout:15000}
-    );
-   }
-  },
-  error=>{
-   document.getElementById('gpsStatus').textContent='GPS: NEDOSTUPNÁ';
-   const errors={
-    1:'Přístup k poloze nebyl povolen. Povol GPS v prohlížeči.',
-    2:'Poloha není momentálně dostupná.',
-    3:'Zjišťování polohy trvalo příliš dlouho.'
-   };
-   say(errors[error.code]||'Nepodařilo se zjistit polohu.');
-  },
-  {enableHighAccuracy:true,timeout:15000,maximumAge:0}
- );
-}
-
-function updateGPS(p){
- const next=[p.coords.longitude,p.coords.latitude];
-
- if(lastPosition){
-  const distance=distanceMeters(lastPosition,next);
-
-  if(distance>1.8){
-   const heading=p.coords.heading;
-   targetHeading=Number.isFinite(heading)&&heading>=0
-    ? -heading*Math.PI/180
-    : -bearingBetween(lastPosition,next);
-
-   moving=true;
-   lastMoveTime=Date.now();
-   lastPosition=next;
-  }
- }
-
- playerPosition=next;
-
- if(Date.now()-lastMoveTime>1800){
-  moving=false;
- }
-
- if(objectsCreated===false){
-  createWorldObjects();
-  objectsCreated=true;
- }
-}
-
-function startGame(){
- document.getElementById('intro').style.display='none';
- gameStarted=true;
- locatePlayer();
-}
-
-/* PŘEDMĚTY NA MAPĚ – PEVNÉ GPS SOUŘADNICE */
-
-const worldObjects=[
- {name:'Lesní krystal',type:'ENERGIE',kind:'crystal',dx:0.0011,dy:0.0005},
- {name:'Starobylá schránka',type:'POKLAD',kind:'wood',dx:-0.0012,dy:0.0008},
- {name:'Magický portál',type:'PORTÁL',kind:'portal',dx:0.0003,dy:-0.0014},
- {name:'Druhý krystal',type:'ENERGIE',kind:'crystal',dx:-0.0015,dy:-0.0011}
-];
-
-function createWorldObjects(){
- if(!playerPosition)return;
- clearObjects();
-
- worldObjects.forEach(item=>{
-  const el=document.createElement('div');
-  el.className='world-item';
-
-  if(item.kind==='crystal'){
-   el.classList.add('crystal');
-   el.innerHTML='<div class="item-shadow"></div><div class="crystal-shape"></div><div class="crystal-shine"></div>';
-  }
-  if(item.kind==='wood'){
-   el.classList.add('wood-item');
-   el.innerHTML='<div class="item-shadow"></div><div class="wood-shape"></div>';
-  }
-  if(item.kind==='portal'){
-   el.classList.add('portal-object');
-   el.innerHTML='<div class="item-shadow"></div><div class="portal-ring"></div><div class="portal-base"></div>';
+  if(typeof maplibregl==="undefined"){
+    showError("MapLibre se nepodařilo načíst. Zkontroluj internetové připojení nebo CDN.");
+    return;
   }
 
-  const coords=[
-   playerPosition[0]+item.dx,
-   playerPosition[1]+item.dy
-  ];
+  try{
+
+    map=new maplibregl.Map({
+      container:"map",
+      style:"https://tiles.openfreemap.org/styles/bright",
+      center:initialCenter,
+      zoom:16,
+      pitch:48,
+      bearing:0,
+      antialias:true,
+      attributionControl:false
+    });
+
+    map.addControl(new maplibregl.AttributionControl({
+      compact:true
+    }));
+
+    map.on("load",()=>{
+      mapReady=true;
+      $("loadingText").textContent="Načítám živý svět...";
+      addWorldItems();
+      hideLoading("Vítej v REALM GO!");
+      $("locationStatus").textContent="Mapa připravena · Čekám na GPS";
+    });
+
+    map.on("error",e=>{
+      console.warn("Map error:",e.error||e);
+      if(!mapReady){
+        $("loadingText").textContent="Načítám mapové podklady...";
+      }
+    });
+
+  }catch(e){
+    showError("Mapu se nepodařilo spustit: "+e.message);
+  }
+}
+
+/* PŘEDMĚTY VE SVĚTĚ */
+
+function addItem(lng,lat,emoji,name){
+
+  if(!map)return;
+
+  const element=document.createElement("div");
+  element.className="item-marker";
+  element.innerHTML=
+    '<span class="item-symbol">'+emoji+'</span>'+
+    '<span class="item-shadow"></span>';
 
   const marker=new maplibregl.Marker({
-   element:el,
-   anchor:'bottom',
-   pitchAlignment:'map',
-   rotationAlignment:'map'
-  }).setLngLat(coords).addTo(map);
+    element:element,
+    anchor:"bottom"
+  }).setLngLat([lng,lat]).addTo(map);
 
-  el.addEventListener('click',()=>{
-   say(item.name+' · '+item.type+' · Objekt objeven!');
-   toast('OBJEVIL JSI: '+item.name.toUpperCase());
+  element.addEventListener("click",()=>{
+    showMessage(name+" – nalezen předmět!");
+    updateXP(10);
+    marker.remove();
   });
 
-  itemMarkers.push(marker);
- });
+  markers.push(marker);
 }
 
-function clearObjects(){
- itemMarkers.forEach(m=>m.remove());
- itemMarkers=[];
- objectsCreated=false;
+function addWorldItems(){
+
+  // Ukázkové herní předměty poblíž středu mapy.
+  // Jsou ukotvené v geografických souřadnicích.
+  const center=map.getCenter();
+
+  const items=[
+    {dx:0.00045,dy:0.00035,e:"💎",n:"Krystal energie"},
+    {dx:-0.00055,dy:0.00025,e:"🌿",n:"Bylina života"},
+    {dx:0.00030,dy:-0.00055,e:"🪙",n:"Starověká mince"},
+    {dx:-0.00040,dy:-0.00045,e:"✨",n:"Magická esence"},
+    {dx:0.00075,dy:0.00010,e:"📦",n:"Tajemná schránka"}
+  ];
+
+  items.forEach(item=>{
+    addItem(
+      center.lng+item.dx,
+      center.lat+item.dy,
+      item.e,
+      item.n
+    );
+  });
 }
 
-function scanWorld(){
- if(!playerPosition){
-  say('Nejdříve načti svoji GPS polohu.');
-  locatePlayer();
-  return;
- }
- if(!objectsCreated){
-  createWorldObjects();
-  objectsCreated=true;
- }
- say('Oblast prozkoumána. Předměty jsou pevně ukotvené.');
- toast('SKENOVÁNÍ DOKONČENO');
+/* THREE.JS – 3D AVATAR */
+
+function createAvatar(){
+
+  if(typeof THREE==="undefined"){
+    console.warn("Three.js není dostupné. Mapa poběží bez 3D avatara.");
+    return;
+  }
+
+  try{
+
+    const canvas=$("avatarCanvas");
+
+    renderer=new THREE.WebGLRenderer({
+      canvas:canvas,
+      alpha:true,
+      antialias:true
+    });
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setClearColor(0x000000,0);
+    renderer.shadowMap.enabled=true;
+    renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+    scene=new THREE.Scene();
+
+    camera=new THREE.OrthographicCamera(
+      -window.innerWidth/2,
+      window.innerWidth/2,
+      window.innerHeight/2,
+      -window.innerHeight/2,
+      0.1,
+      1000
+    );
+
+    camera.position.set(0,0,100);
+    camera.lookAt(0,0,0);
+
+    scene.add(new THREE.AmbientLight(0xffffff,1.5));
+
+    const sun=new THREE.DirectionalLight(0xffffff,2.0);
+    sun.position.set(-50,80,100);
+    scene.add(sun);
+
+    const fill=new THREE.DirectionalLight(0x8bdcff,0.7);
+    fill.position.set(60,10,60);
+    scene.add(fill);
+
+    avatar=new THREE.Group();
+    scene.add(avatar);
+
+    const green=new THREE.MeshStandardMaterial({
+      color:0x25864b,roughness:0.85
+    });
+
+    const darkGreen=new THREE.MeshStandardMaterial({
+      color:0x12472e,roughness:0.9
+    });
+
+    const skin=new THREE.MeshStandardMaterial({
+      color:0xe9b98c,roughness:0.8
+    });
+
+    const leather=new THREE.MeshStandardMaterial({
+      color:0x70452b,roughness:0.9
+    });
+
+    const gold=new THREE.MeshStandardMaterial({
+      color:0xf5ca55,metalness:0.6,roughness:0.35
+    });
+
+    const bootMat=new THREE.MeshStandardMaterial({
+      color:0x30251d,roughness:0.9
+    });
+
+    function mesh(geometry,material,parent,x,y,z){
+      const m=new THREE.Mesh(geometry,material);
+      m.position.set(x,y,z);
+      m.castShadow=true;
+      m.receiveShadow=true;
+      parent.add(m);
+      return m;
+    }
+
+    // Stín pod nohama
+    const shadow=mesh(
+      new THREE.CircleGeometry(19,32),
+      new THREE.MeshBasicMaterial({
+        color:0x17251c,transparent:true,opacity:0.35
+      }),
+      avatar,0,2,-5
+    );
+    shadow.scale.set(1.5,0.42,1);
+
+    // Plášť
+    const cape=mesh(
+      new THREE.ConeGeometry(17,48,8),
+      darkGreen,avatar,0,38,-3
+    );
+    cape.rotation.x=Math.PI;
+
+    // Tělo
+    const body=mesh(
+      new THREE.CapsuleGeometry(10,19,5,10),
+      green,avatar,0,48,3
+    );
+
+    // Hrudní pás
+    const belt=mesh(
+      new THREE.BoxGeometry(19,5,5),
+      leather,avatar,0,42,11
+    );
+
+    // Batoh
+    const backpack=mesh(
+      new THREE.BoxGeometry(15,19,9),
+      leather,avatar,0,53,-8
+    );
+
+    // Hlava
+    const head=mesh(
+      new THREE.SphereGeometry(10,24,20),
+      skin,avatar,0,76,5
+    );
+
+    // Kapuce
+    const hood=mesh(
+      new THREE.SphereGeometry(12,24,18,0,Math.PI*2,0,Math.PI*0.65),
+      darkGreen,avatar,0,80,2
+    );
+
+    // Tvář – oči
+    const eyeMat=new THREE.MeshBasicMaterial({color:0x25251c});
+    mesh(new THREE.SphereGeometry(1.25,8,8),eyeMat,avatar,-3,76,14);
+    mesh(new THREE.SphereGeometry(1.25,8,8),eyeMat,avatar,3,76,14);
+
+    // Ramena
+    mesh(new THREE.SphereGeometry(6,12,12),green,avatar,-12,57,3);
+    mesh(new THREE.SphereGeometry(6,12,12),green,avatar,12,57,3);
+
+    // Ruce na otočných kloubech
+    const leftArm=new THREE.Group();
+    leftArm.position.set(-13,55,4);
+    avatar.add(leftArm);
+
+    mesh(new THREE.CapsuleGeometry(4,15,4,8),green,leftArm,0,-10,0);
+
+    const rightArm=new THREE.Group();
+    rightArm.position.set(13,55,4);
+    avatar.add(rightArm);
+
+    mesh(new THREE.CapsuleGeometry(4,15,4,8),green,rightArm,0,-10,0);
+
+    // Nohy
+    const leftLeg=new THREE.Group();
+    leftLeg.position.set(-6,31,4);
+    avatar.add(leftLeg);
+
+    mesh(new THREE.CapsuleGeometry(4,13,4,8),leather,leftLeg,0,-9,0);
+
+    const leftBoot=mesh(
+      new THREE.BoxGeometry(10,7,15),
+      bootMat,leftLeg,0,-20,4
+    );
+
+    const rightLeg=new THREE.Group();
+    rightLeg.position.set(6,31,4);
+    avatar.add(rightLeg);
+
+    mesh(new THREE.CapsuleGeometry(4,13,4,8),leather,rightLeg,0,-9,0);
+
+    const rightBoot=mesh(
+      new THREE.BoxGeometry(10,7,15),
+      bootMat,rightLeg,0,-20,4
+    );
+
+    // Zlatý znak na hrudi
+    const emblem=mesh(
+      new THREE.OctahedronGeometry(4),
+      gold,avatar,0,53,13
+    );
+
+    // Plášť a batoh
+    avatarParts={
+      leftArm,rightArm,leftLeg,rightLeg,
+      cape,shadow,body,head
+    };
+
+    avatar.scale.set(1,1,1);
+    avatarReady=true;
+
+  }catch(e){
+    console.error("Avatar error:",e);
+    avatarReady=false;
+  }
 }
 
-function showCreatures(){
- if(!playerPosition){
-  say('Nejdříve načti GPS polohu.');
-  return;
- }
- say('Radar zaznamenává energetické stopy v okolí.');
- toast('RADAR AKTIVNÍ');
+/* GPS */
+
+function startGPS(){
+
+  if(!navigator.geolocation){
+    showMessage("Tento prohlížeč nepodporuje GPS.");
+    return;
+  }
+
+  $("locationStatus").textContent="Zjišťuji polohu...";
+
+  navigator.geolocation.getCurrentPosition(
+    position=>{
+      handlePosition(position);
+      navigator.geolocation.watchPosition(
+        handlePosition,
+        gpsError,
+        {
+          enableHighAccuracy:true,
+          maximumAge:3000,
+          timeout:20000
+        }
+      );
+    },
+    gpsError,
+    {
+      enableHighAccuracy:true,
+      maximumAge:0,
+      timeout:20000
+    }
+  );
 }
 
-function showPortals(){
- if(!playerPosition){
-  say('Nejdříve načti GPS polohu.');
-  return;
- }
- say('Portálový radar hledá průchody mezi říšemi.');
- toast('PORTÁLOVÝ RADAR AKTIVNÍ');
+function handlePosition(position){
+
+  const lng=position.coords.longitude;
+  const lat=position.coords.latitude;
+
+  if(!Number.isFinite(lng)||!Number.isFinite(lat))return;
+
+  playerPosition=[lng,lat];
+
+  if(lastPosition){
+
+    const dx=lng-lastPosition[0];
+    const dy=lat-lastPosition[1];
+
+    const distance=Math.sqrt(dx*dx+dy*dy);
+
+    if(distance>0.000002){
+      heading=Math.atan2(dx,dy);
+      isWalking=true;
+    }else{
+      isWalking=false;
+    }
+  }
+
+  lastPosition=[lng,lat];
+
+  $("locationStatus").textContent=
+    "GPS aktivní · přesnost "+Math.round(position.coords.accuracy)+" m";
+
+  if(map){
+    if(!mapReady)return;
+
+    if(!window.playerCentered){
+      map.flyTo({
+        center:playerPosition,
+        zoom:18,
+        pitch:55,
+        duration:1800
+      });
+      window.playerCentered=true;
+    }
+  }
 }
 
-function changeView(){
- threeD=!threeD;
- map.easeTo({
-  pitch:threeD?62:0,
-  bearing:threeD?-18:0,
-  duration:1000
- });
- say(threeD?'Prostorový pohled aktivní.':'Poh
+function gpsError(error){
+
+  const messages={
+    1:"Povol přístup k poloze v prohlížeči.",
+    2:"GPS poloha není dostupná.",
+    3:"GPS odpověděla příliš pozdě."
+  };
+
+  $("locationStatus").textContent=
+    messages[error.code]||"GPS se nepodařilo spustit.";
+
+  showMessage(messages[error.code]||"Chyba GPS");
+}
+
+/* UMÍSTĚNÍ AVATARA */
+
+function updateAvatar(){
+
+  if(!avatarReady||!playerPosition||!map||!mapReady)return;
+
+  const p=map.project(playerPosition);
+
+  avatar.position.set(
+    p.x-window.innerWidth/2,
+    window.innerHeight/2-p.y,
+    0
+  );
+
+  avatar.rotation.z=-heading;
+
+  const t=performance.now()*0.008;
+
+  if(isWalking){
+    avatarParts.leftLeg.rotation.x=Math.sin(t)*0.45;
+    avatarParts.rightLeg.rotation.x=-Math.sin(t)*0.45;
+    avatarParts.leftArm.rotation.x=-Math.sin(t)*0.35;
+    avatarParts.rightArm.rotation.x=Math.sin(t)*0.35;
+    avatar.position.y+=Math.abs(Math.sin(t*2))*2;
+  }else{
+    avatarParts.leftLeg.rotation.x=0;
+    avatarParts.rightLeg.rotation.x=0;
+    avatarParts.leftArm.rotation.x=0;
+    avatarParts.rightArm.rotation.x=0;
+    avatar.position.y+=Math.sin(t*0.4)*1.2;
+  }
+}
+
+function animate(){
+
+  requestAnimationFrame(animate);
+
+  if(renderer&&scene&&camera){
+    updateAvatar();
+    renderer.render(scene,camera);
+  }
+}
+
+/* OVLÁDÁNÍ */
+
+$("gpsButton").addEventListener("click",()=>{
+  if(playerPosition&&map){
+    map.flyTo({
+      center:playerPosition,
+      zoom:18,
+      pitch:55,
+      duration:1200
+    });
+  }else{
+    startGPS();
+  }
+});
+
+$("zoomIn").addEventListener("click",()=>{
+  if(map)map.zoomIn();
+});
+
+$("zoomOut").addEventListener("click",()=>{
+  if(map)map.zoomOut();
+});
+
+$("inventoryButton").addEventListener("click",()=>{
+  showMessage("🎒 Batoh – zatím prázdný");
+});
+
+$("worldButton").addEventListener("click",()=>{
+  if(map){
+    map.easeTo({pitch:55,duration:900});
+    showMessage("🌍 Vítej v živém světě REALM GO");
+  }
+});
+
+window.addEventListener("resize",()=>{
+  if(!renderer||!camera)return;
+
+  renderer.setSize(window.innerWidth,window.innerHeight);
+
+  camera.left=-window.innerWidth/2;
+  camera.right=window.innerWidth/2;
+  camera.top=window.innerHeight/2;
+  camera.bottom=-window.innerHeight/2;
+  camera.updateProjectionMatrix();
+});
+
+/* SPUŠTĚNÍ */
+
+function boot(){
+
+  $("loadingText").textContent="Načítám mapový engine...";
+
+  startMap();
+
+  $("loadingText").textContent="Vytvářím 3D postavu...";
+
+  createAvatar();
+
+  animate();
+
+  // GPS spustíme po otevření aplikace.
+  startGPS();
+
+  // Záchranná pojistka: načítací obrazovka nesmí zůstat navždy.
+  setTimeout(()=>{
+    if(!$("loading").classList.contains("hidden")){
+      hideLoading("Svět se načítá na pozadí...");
+    }
+  },12000);
+}
+
+boot();
+
+})();
+</script>
+
+</body>
+</html>
