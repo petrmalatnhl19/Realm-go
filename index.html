@@ -711,4 +711,120 @@ function animate(){
 function startGPS(){
  if(!navigator.geolocation){
   $("locationStatus").textContent="GPS není podporována";
-  retur
+  return;
+ }
+
+ if(gpsWatch!==null)return;
+
+ $("locationStatus").textContent="Vyhledávám signál GPS...";
+
+ gpsWatch=navigator.geolocation.watchPosition(
+  onPosition,
+  gpsError,
+  {
+   enableHighAccuracy:true,
+   maximumAge:3000,
+   timeout:20000
+  }
+ );
+}
+
+function onPosition(position){
+ const lng=position.coords.longitude;
+ const lat=position.coords.latitude;
+ const next=[lng,lat];
+
+ lastPosition=playerPosition;
+ playerPosition=next;
+
+ $("locationStatus").textContent="GPS PŘIPOJENO";
+ $("coords").textContent=lat.toFixed(5)+" · "+lng.toFixed(5);
+
+ if(map&&mapReady){
+  if(followPlayer){
+   map.easeTo({
+    center:next,
+    duration:900,
+    zoom:Math.max(map.getZoom(),18)
+   });
+  }
+
+  if(!worldItemsCreated)createWorldItems();
+  updateAvatarPosition();
+ }
+}
+
+function gpsError(error){
+ let text="GPS se nepodařilo získat.";
+ if(error.code===1)text="Povol přístup k poloze.";
+ if(error.code===2)text="Poloha není dostupná.";
+ if(error.code===3)text="Vypršel čas GPS.";
+ $("locationStatus").textContent=text;
+ console.warn("GPS:",error.message);
+}
+
+function centerOnPlayer(){
+ if(!map||!playerPosition)return;
+ followPlayer=true;
+ map.flyTo({center:playerPosition,zoom:18,pitch:55,duration:1200});
+}
+
+/* OVLÁDÁNÍ */
+
+$("zoomIn").onclick=()=>map&&map.zoomIn();
+$("zoomOut").onclick=()=>map&&map.zoomOut();
+$("gpsButton").onclick=()=>{
+ if(playerPosition)centerOnPlayer();
+ else{
+  followPlayer=true;
+  msg("Čekám na GPS signál.");
+ }
+};
+$("inventoryButton").onclick=showInventory;
+$("worldButton").onclick=()=>{
+ updateDayNight();
+ msg("REALM GO · "+(dayState?"ALIEN DAY":"ALIEN NIGHT"));
+};
+
+/* START APLIKACE */
+
+function boot(){
+ updateClock();
+ setInterval(updateClock,15000);
+
+ createAvatar();
+ animate();
+
+ startMap();
+ startGPS();
+
+ // Pojistka proti nekonečnému načítání.
+ setTimeout(()=>{
+  if(!loadingHidden){
+   fail("Mapa se nenačetla včas. Zkontroluj připojení nebo dostupnost mapových serverů.");
+  }
+ },18000);
+}
+
+window.addEventListener("resize",()=>{
+ if(renderer&&camera){
+  renderer.setSize(innerWidth,innerHeight);
+  camera.left=-innerWidth/2;
+  camera.right=innerWidth/2;
+  camera.top=innerHeight/2;
+  camera.bottom=-innerHeight/2;
+  camera.updateProjectionMatrix();
+ }
+ updateAvatarPosition();
+});
+
+if(document.readyState==="loading"){
+ document.addEventListener("DOMContentLoaded",boot);
+}else{
+ boot();
+}
+
+})();
+</script>
+</body>
+</html>
