@@ -840,6 +840,11 @@ function updateAvatar(){
  // Celá postava zůstává vzpřímená.
  // Otáčí se výhradně kolem svislé osy Y.
  avatar.rotation.set(0,heading,0);
+ // Velikost avatara se přizpůsobuje zoomu mapy
+const zoomScale=Math.pow(2,map.getZoom()-18);
+const avatarScale=Math.max(0.35,Math.min(2.5,zoomScale));
+
+avatar.scale.setScalar(avatarScale);
 
  const t=performance.now()*.008;
 
