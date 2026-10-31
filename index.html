@@ -495,7 +495,21 @@ function addItem(position,emoji,name){
 
  worldItems.push(item);
  markers.push(marker);
+// Přizpůsobení velikosti předmětu zoomu mapy
+function updateItemScale(){
+ const scale=Math.max(
+  0.35,
+  Math.min(2.5,Math.pow(2,map.getZoom()-18))
+ );
 
+ markers.forEach(m=>{
+  const el=m.getElement();
+  el.style.transform=`scale(${scale})`;
+ });
+}
+
+map.on("zoom",updateItemScale);
+updateItemScale();
  el.addEventListener("click",()=>{
   if(!playerPosition){
    msg("Nejdříve potřebuješ GPS signál.");
